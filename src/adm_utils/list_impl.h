@@ -27,14 +27,14 @@
 
 typedef struct LIST_NODE_TYPE {
     LIST_TEMPLATE _data;
-    NULLABLE struct ARENA_MANAGED(LIST_NODE_TYPE) _next;
-    NULLABLE struct ARENA_MANAGED(LIST_NODE_TYPE) _previous;
+    NULLABLE struct LIST_NODE_TYPE* _next;
+    NULLABLE struct LIST_NODE_TYPE* _previous;
 } LIST_NODE_TYPE;
 
 typedef struct LIST_TYPE {
     arena_t* _arena;
-    NULLABLE ARENA_MANAGED(LIST_NODE_TYPE) _head;
-    NULLABLE ARENA_MANAGED(LIST_NODE_TYPE) _tail;
+    NULLABLE LIST_NODE_TYPE* _head;
+    NULLABLE LIST_NODE_TYPE* _tail;
 } LIST_TYPE;
 
 // TODO: Clone function
@@ -69,7 +69,7 @@ LIST_TYPE LIST_SYMBOL(new)(arena_t* arena) {
 }
 
 void LIST_SYMBOL(push_back)(LIST_TYPE* list, LIST_TEMPLATE element) {
-    ARENA_MANAGED(LIST_NODE_TYPE) node = arena_alloc(list->_arena, LIST_NODE_TYPE);
+    LIST_NODE_TYPE* node = arena_alloc(list->_arena, LIST_NODE_TYPE);
     node->_data = element;
     node->_next = NULL;
     node->_previous = NULL;
@@ -87,7 +87,7 @@ void LIST_SYMBOL(push_back)(LIST_TYPE* list, LIST_TEMPLATE element) {
 }
 
 void LIST_SYMBOL(push_front)(LIST_TYPE* list, LIST_TEMPLATE element) {
-    ARENA_MANAGED(LIST_NODE_TYPE) node = arena_alloc(list->_arena, LIST_NODE_TYPE);
+    LIST_NODE_TYPE* node = arena_alloc(list->_arena, LIST_NODE_TYPE);
     node->_data = element;
     node->_next = NULL;
     node->_previous = NULL;

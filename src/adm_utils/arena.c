@@ -26,7 +26,7 @@ arena_t arena_new() {
 }
 
 PRIVATE u64 s_tag_counter = 0;
-ARENA_MANAGED_OPAQUE arena_defer_raw(arena_t* arena, NULLABLE arena_defer_t func, NULLABLE usize user_data_size) {
+void* arena_defer_raw(arena_t* arena, NULLABLE arena_defer_t func, NULLABLE usize user_data_size) {
     PANIC_ASSERT_DEBUG(user_data_size >= 0, "");
 
     // We allocate our node alongside our user_data
@@ -55,14 +55,14 @@ ARENA_MANAGED_OPAQUE arena_defer_raw(arena_t* arena, NULLABLE arena_defer_t func
     return (byte*)node + sizeof(_arena_defer_node);
 }
 
-ARENA_MANAGED_OPAQUE arena_alloc_raw(arena_t* arena, usize size) {
+void* arena_alloc_raw(arena_t* arena, usize size) {
     return arena_defer_raw(arena, NULL, size);
 }
 
-ARENA_MANAGED_OPAQUE arena_alloc_copy_raw(arena_t* arena, ARENA_MANAGED_OPAQUE mem) {
+void* arena_alloc_copy_raw(arena_t* arena, void* mem) {
     _arena_defer_node* node = (_arena_defer_node*)((byte*)mem - sizeof(_arena_defer_node));
     
-    ARENA_MANAGED_OPAQUE new = arena_defer_raw(arena, node->func, node->user_data_size);
+    void* new = arena_defer_raw(arena, node->func, node->user_data_size);
     memcpy(new, mem, node->user_data_size);
     return new;
 }
@@ -105,7 +105,7 @@ PRIVATE void _arena_free_node(arena_t* arena, _arena_defer_node* node) {
     _arena_free_func(node);
 }
 
-void arena_free(arena_t* arena, ARENA_MANAGED_OPAQUE mem) {
+void arena_free(arena_t* arena, void* mem) {
     PANIC_ASSERT_DEBUG(mem != NULL, "");
     _arena_defer_node* node = (_arena_defer_node*)((byte*)mem - sizeof(_arena_defer_node));
     _arena_free_node(arena, node);
@@ -130,8 +130,8 @@ void arena_destroy(arena_t* arena) {
     arena_cleanup(arena);
 }
 
-ARENA_MANAGED(arena_t) arena_new_child_arena(arena_t* parent) {
-    ARENA_MANAGED(arena_t) child = arena_defer(parent, arena_destroy, arena_t);
+arena_t* arena_new_child_arena(arena_t* parent) {
+    arena_t child = arena_defer(parent, arena_destroy, arena_t);
     *child = arena_new();
     return child;
 }

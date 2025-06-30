@@ -29,7 +29,7 @@ typedef struct VEC_TYPE {
     arena_t* _arena;
     usize _length;
     usize _capacity;
-    NULLABLE ARENA_MANAGED(VEC_TEMPLATE) _ptr;
+    NULLABLE VEC_TEMPLATE* _ptr;
 } VEC_TYPE;
 
 // TODO: Descriptions of methods
@@ -43,7 +43,7 @@ void VEC_SYMBOL(shrink)(VEC_TYPE* vec);
 void VEC_SYMBOL(set_length)(VEC_TYPE* vec, usize length);
 usize VEC_SYMBOL(length)(VEC_TYPE* vec);
 usize VEC_SYMBOL(capacity)(VEC_TYPE* vec);
-ARENA_MANAGED(VEC_TEMPLATE) VEC_SYMBOL(ptr)(VEC_TYPE* vec);
+VEC_TEMPLATE* VEC_SYMBOL(ptr)(VEC_TYPE* vec);
 bool VEC_SYMBOL(empty)(VEC_TYPE* vec);
 void VEC_SYMBOL(push)(VEC_TYPE* vec, VEC_TEMPLATE element);
 void VEC_SYMBOL(push_array)(VEC_TYPE* vec, VEC_TEMPLATE src[], usize size);
@@ -92,7 +92,7 @@ VEC_TYPE VEC_SYMBOL(clone)(VEC_TYPE* vec) {
         return VEC_SYMBOL(new)(vec->_arena);
     }
 
-    ARENA_MANAGED(VEC_TEMPLATE) copied_ptr = arena_alloc_copy_raw(vec->_arena, vec->_ptr);
+    VEC_TEMPLATE* copied_ptr = arena_alloc_copy_raw(vec->_arena, vec->_ptr);
     return (VEC_TYPE){
         ._arena = vec->_arena,
         ._length = vec->_length,
@@ -102,7 +102,7 @@ VEC_TYPE VEC_SYMBOL(clone)(VEC_TYPE* vec) {
 }
 
 void VEC_SYMBOL(reallocate)(VEC_TYPE* vec, usize new_size) {
-    ARENA_MANAGED(VEC_TEMPLATE) new_ptr = arena_alloc_raw(vec->_arena, sizeof(VEC_TEMPLATE) * new_size);
+    VEC_TEMPLATE* new_ptr = arena_alloc_raw(vec->_arena, sizeof(VEC_TEMPLATE) * new_size);
     vec->_capacity = new_size;
 
     if (vec->_ptr != NULL) {
@@ -162,7 +162,7 @@ usize VEC_SYMBOL(capacity)(VEC_TYPE* vec) {
     return vec->_capacity;
 }
 
-ARENA_MANAGED(VEC_TEMPLATE) VEC_SYMBOL(ptr)(VEC_TYPE* vec) {
+VEC_TEMPLATE* VEC_SYMBOL(ptr)(VEC_TYPE* vec) {
     return vec->_ptr;
 }
 

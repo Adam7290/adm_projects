@@ -26,17 +26,17 @@ PRIVATE void test_defer_func(i32* num) {
 PRIVATE void actual_test() {
     arena_t root_arena = arena_new();
 
-    ARENA_MANAGED(arena_t) child_arena = arena_new_child_arena(&root_arena);
-    ARENA_MANAGED(arena_t) grand_child_arena = arena_new_child_arena(child_arena);
+    arena_t* child_arena = arena_new_child_arena(&root_arena);
+    arena_t* grand_child_arena = arena_new_child_arena(child_arena);
 
-    ARENA_MANAGED(i32) test = arena_alloc(grand_child_arena, i32);
+    i32* test = arena_alloc(grand_child_arena, i32);
     *test = 123;
     arena_free(grand_child_arena, test);
 
     *arena_defer(grand_child_arena, test_defer_func, i32) = 666;
 
-    ARENA_MANAGED(arena_t) great_grand_child_arena = arena_new_child_arena(grand_child_arena);
-    ARENA_MANAGED(char) other_test = arena_alloc(grand_child_arena, char);
+    arena_t* great_grand_child_arena = arena_new_child_arena(grand_child_arena);
+    char* other_test = arena_alloc(grand_child_arena, char);
     arena_destroy(grand_child_arena);
 
     arena_destroy(&root_arena);

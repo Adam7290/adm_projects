@@ -152,7 +152,7 @@ void string_clear(string_t* string) {
     _admstrvec_clear(&string->_array);
 }
 
-ARENA_MANAGED(char) string_ptr(string_t* string) {
+char* string_ptr(string_t* string) {
     return string->_array._ptr;
 }
 

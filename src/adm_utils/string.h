@@ -59,7 +59,7 @@ bool string_empty(string_t* string);
 // Clear string content
 void string_clear(string_t* string);
 // Return null terminated cstr of string
-ARENA_MANAGED(char) string_ptr(string_t* string);
+char string_ptr(string_t* string);
 
 iter_t string_begin(string_t* string);
 iter_t string_end(string_t* string);
