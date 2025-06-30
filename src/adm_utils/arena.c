@@ -131,7 +131,7 @@ void arena_destroy(arena_t* arena) {
 }
 
 arena_t* arena_new_child_arena(arena_t* parent) {
-    arena_t child = arena_defer(parent, arena_destroy, arena_t);
+    arena_t* child = arena_defer(parent, arena_destroy, arena_t);
     *child = arena_new();
     return child;
 }
