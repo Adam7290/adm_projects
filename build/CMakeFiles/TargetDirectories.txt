@@ -1,0 +1,11 @@
+/home/adam/Projects/adm_projects/build/CMakeFiles/edit_cache.dir
+/home/adam/Projects/adm_projects/build/CMakeFiles/rebuild_cache.dir
+/home/adam/Projects/adm_projects/build/src/adm_utils/CMakeFiles/adm_utils.dir
+/home/adam/Projects/adm_projects/build/src/adm_utils/CMakeFiles/adm_utils_test_runner.dir
+/home/adam/Projects/adm_projects/build/src/adm_utils/CMakeFiles/adm_utils_sandbox.dir
+/home/adam/Projects/adm_projects/build/src/adm_utils/CMakeFiles/edit_cache.dir
+/home/adam/Projects/adm_projects/build/src/adm_utils/CMakeFiles/rebuild_cache.dir
+/home/adam/Projects/adm_projects/build/src/adm_framework/CMakeFiles/adm_framework.dir
+/home/adam/Projects/adm_projects/build/src/adm_framework/CMakeFiles/adm_framework_sandbox.dir
+/home/adam/Projects/adm_projects/build/src/adm_framework/CMakeFiles/edit_cache.dir
+/home/adam/Projects/adm_projects/build/src/adm_framework/CMakeFiles/rebuild_cache.dir

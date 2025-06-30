@@ -1,0 +1,150 @@
+{
+	"configurations" : 
+	[
+		{
+			"directories" : 
+			[
+				{
+					"build" : ".",
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"jsonFile" : "directory-.-Debug-f5ebdc15457944623624.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.31.3"
+					},
+					"projectIndex" : 0,
+					"source" : "."
+				},
+				{
+					"build" : "src/adm_utils",
+					"jsonFile" : "directory-src.adm_utils-Debug-a6ea0ad619f746faa71b.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.31.3"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 1,
+					"source" : "src/adm_utils",
+					"targetIndexes" : 
+					[
+						2,
+						3,
+						4
+					]
+				},
+				{
+					"build" : "src/adm_framework",
+					"jsonFile" : "directory-src.adm_framework-Debug-3a67004eada44e8828cb.json",
+					"minimumCMakeVersion" : 
+					{
+						"string" : "3.31.3"
+					},
+					"parentIndex" : 0,
+					"projectIndex" : 2,
+					"source" : "src/adm_framework",
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"name" : "Debug",
+			"projects" : 
+			[
+				{
+					"childIndexes" : 
+					[
+						1,
+						2
+					],
+					"directoryIndexes" : 
+					[
+						0
+					],
+					"name" : "adams_libs"
+				},
+				{
+					"directoryIndexes" : 
+					[
+						1
+					],
+					"name" : "adm_utils",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						2,
+						3,
+						4
+					]
+				},
+				{
+					"directoryIndexes" : 
+					[
+						2
+					],
+					"name" : "adm_framework",
+					"parentIndex" : 0,
+					"targetIndexes" : 
+					[
+						0,
+						1
+					]
+				}
+			],
+			"targets" : 
+			[
+				{
+					"directoryIndex" : 2,
+					"id" : "adm_framework::@340e18e0fa12cc3ebfeb",
+					"jsonFile" : "target-adm_framework-Debug-5a65ed9994d2a3d98d27.json",
+					"name" : "adm_framework",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 2,
+					"id" : "adm_framework_sandbox::@340e18e0fa12cc3ebfeb",
+					"jsonFile" : "target-adm_framework_sandbox-Debug-5a2786b123e6bc4e4815.json",
+					"name" : "adm_framework_sandbox",
+					"projectIndex" : 2
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "adm_utils::@906a174299f82ffd5bcf",
+					"jsonFile" : "target-adm_utils-Debug-6f920a77a1c6812c4d02.json",
+					"name" : "adm_utils",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "adm_utils_sandbox::@906a174299f82ffd5bcf",
+					"jsonFile" : "target-adm_utils_sandbox-Debug-2aa1c60e201d6a95c25a.json",
+					"name" : "adm_utils_sandbox",
+					"projectIndex" : 1
+				},
+				{
+					"directoryIndex" : 1,
+					"id" : "adm_utils_test_runner::@906a174299f82ffd5bcf",
+					"jsonFile" : "target-adm_utils_test_runner-Debug-52fda985999f013f306a.json",
+					"name" : "adm_utils_test_runner",
+					"projectIndex" : 1
+				}
+			]
+		}
+	],
+	"kind" : "codemodel",
+	"paths" : 
+	{
+		"build" : "/home/adam/Projects/adm_projects/build",
+		"source" : "/home/adam/Projects/adm_projects"
+	},
+	"version" : 
+	{
+		"major" : 2,
+		"minor" : 8
+	}
+}

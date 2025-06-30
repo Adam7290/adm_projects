@@ -1,0 +1,2 @@
+/usr/bin/ar qc libadm_framework.a CMakeFiles/adm_framework.dir/test.c.o
+/usr/bin/ranlib libadm_framework.a

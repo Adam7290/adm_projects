@@ -1,0 +1,104 @@
+[
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils.dir/arena.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/arena.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/arena.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils.dir/arena.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils.dir/panic.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/panic.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/panic.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils.dir/panic.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils.dir/string.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/string.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/string.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils.dir/string.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils.dir/hash.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/hash.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/hash.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils.dir/hash.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils.dir/iter.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/iter.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/iter.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils.dir/iter.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils_test_runner.dir/tests/framework/test.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/tests/framework/test.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/tests/framework/test.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils_test_runner.dir/tests/framework/test.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils_test_runner.dir/tests/test_main.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/tests/test_main.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/tests/test_main.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils_test_runner.dir/tests/test_main.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils_test_runner.dir/tests/test_arena.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/tests/test_arena.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/tests/test_arena.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils_test_runner.dir/tests/test_arena.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils_test_runner.dir/tests/test_vector.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/tests/test_vector.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/tests/test_vector.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils_test_runner.dir/tests/test_vector.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils_test_runner.dir/tests/test_list.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/tests/test_list.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/tests/test_list.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils_test_runner.dir/tests/test_list.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils_test_runner.dir/tests/test_string.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/tests/test_string.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/tests/test_string.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils_test_runner.dir/tests/test_string.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils_test_runner.dir/tests/test_test.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/tests/test_test.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/tests/test_test.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils_test_runner.dir/tests/test_test.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils_test_runner.dir/tests/test_iter.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/tests/test_iter.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/tests/test_iter.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils_test_runner.dir/tests/test_iter.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils_test_runner.dir/tests/test_map.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/tests/test_map.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/tests/test_map.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils_test_runner.dir/tests/test_map.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_utils",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_utils_sandbox.dir/sandbox/main.c.o -c /home/adam/Projects/adm_projects/src/adm_utils/sandbox/main.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_utils/sandbox/main.c",
+  "output": "src/adm_utils/CMakeFiles/adm_utils_sandbox.dir/sandbox/main.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_framework",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_framework/.. -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_framework.dir/test.c.o -c /home/adam/Projects/adm_projects/src/adm_framework/test.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_framework/test.c",
+  "output": "src/adm_framework/CMakeFiles/adm_framework.dir/test.c.o"
+},
+{
+  "directory": "/home/adam/Projects/adm_projects/build/src/adm_framework",
+  "command": "/usr/bin/gcc  -I/home/adam/Projects/adm_projects/src/adm_framework/.. -I/home/adam/Projects/adm_projects/src/adm_utils/.. -g -std=gnu17 -o CMakeFiles/adm_framework_sandbox.dir/sandbox/main.c.o -c /home/adam/Projects/adm_projects/src/adm_framework/sandbox/main.c",
+  "file": "/home/adam/Projects/adm_projects/src/adm_framework/sandbox/main.c",
+  "output": "src/adm_framework/CMakeFiles/adm_framework_sandbox.dir/sandbox/main.c.o"
+}
+]
