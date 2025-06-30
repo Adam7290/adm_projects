@@ -1,2 +1,0 @@
-/usr/bin/ar qc libadm_utils.a CMakeFiles/adm_utils.dir/arena.c.o CMakeFiles/adm_utils.dir/panic.c.o CMakeFiles/adm_utils.dir/string.c.o CMakeFiles/adm_utils.dir/hash.c.o CMakeFiles/adm_utils.dir/iter.c.o
-/usr/bin/ranlib libadm_utils.a

@@ -1,1 +1,0 @@
-/usr/bin/gcc -g -Wl,--dependency-file=CMakeFiles/adm_framework_sandbox.dir/link.d CMakeFiles/adm_framework_sandbox.dir/sandbox/main.c.o -o adm_framework_sandbox  libadm_framework.a ../adm_utils/libadm_utils.a

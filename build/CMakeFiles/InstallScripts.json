@@ -1,9 +1,0 @@
-{
-	"InstallScripts" : 
-	[
-		"/home/adam/Projects/adm_projects/build/cmake_install.cmake",
-		"/home/adam/Projects/adm_projects/build/src/adm_utils/cmake_install.cmake",
-		"/home/adam/Projects/adm_projects/build/src/adm_framework/cmake_install.cmake"
-	],
-	"Parallel" : false
-}
