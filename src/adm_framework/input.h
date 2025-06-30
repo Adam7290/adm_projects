@@ -1,9 +1,8 @@
 #pragma once
 #include <stdbool.h>
+#include <adm_utils/util.h>
 
-typedef struct app_t app_t;
-
-typedef enum input_key {
+typedef enum input_key_t {
     INPUT_KEY_UNKNOWN = -1,
     INPUT_KEY_SPACE,
     INPUT_KEY_APOSTROPHE,
@@ -125,7 +124,26 @@ typedef enum input_key {
     INPUT_KEY_RIGHT_ALT,
     INPUT_KEY_RIGHT_SUPER,
     INPUT_KEY_MENU,
-} input_key;
+    INPUT_KEY_COUNT,
+} input_key_t;
 
-bool input_key_down(app_t* app, input_key key);
-bool input_key_up(app_t* app, input_key key);
+typedef enum input_button_state_t {
+    INPUT_BUTTON_STATE_RELEASED,
+    INPUT_BUTTON_STATE_JUST_PRESSED,
+    INPUT_BUTTON_STATE_PRESSED,
+    INPUT_BUTTON_STATE_JUST_RELEASED,
+} input_button_state_t;
+
+typedef struct input_t {
+    u8 key_states[INPUT_KEY_COUNT];
+} input_t;
+
+typedef struct app_t app_t;
+
+void _input_init(app_t* app);
+void _input_frame(app_t* app);
+input_button_state_t input_key_state(app_t* app, input_key_t key);
+bool input_key_down(app_t* app, input_key_t key);
+bool input_key_up(app_t* app, input_key_t key);
+bool input_key_just_pressed(app_t* app, input_key_t key);
+bool input_key_just_released(app_t* app, input_key_t key);

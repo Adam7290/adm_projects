@@ -1,4 +1,5 @@
 #include "app.h"
+#include "input.h"
 
 #include <adm_utils/util.h>
 #include <adm_utils/panic.h>
@@ -19,9 +20,13 @@ app_t* app_new(arena_t* arena, const app_def_t* def) {
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     app->_window = glfwCreateWindow(def->window_size.width, def->window_size.height, def->title, NULL, NULL);
     glfwMakeContextCurrent(app->_window);
+    glfwSetWindowUserPointer(app->_window, app);
 
     // Defer glfw terminate
     arena_defer(arena, glfwTerminate, void);
+
+    // Init components
+    _input_init(app);
 
     return app;
 }
@@ -38,6 +43,8 @@ bool app_frame(app_t* app) {
     if (glfwWindowShouldClose(app->_window) == GLFW_TRUE) {
         return false;
     }
+
+    _input_frame(app);
 
     glfwSwapBuffers(app->_window);
     glfwPollEvents();

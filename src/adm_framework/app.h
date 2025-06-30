@@ -12,9 +12,12 @@ typedef struct app_def_t {
     app_window_size_t window_size;
 } app_def_t;
 
+typedef struct input_t input_t;
 typedef struct app_t {
     arena_t* _arena;
+    // User pointer points to this app
     void* _window;
+    input_t* _input;
 } app_t;
 
 app_t* app_new(arena_t* arena, const app_def_t* def);

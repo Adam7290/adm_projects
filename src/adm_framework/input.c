@@ -1,9 +1,12 @@
 #include "input.h"
 #include "app.h"
 
+#include <adm_utils/panic.h>
+#include <adm_utils/arena.h>
+
 #include <GLFW/glfw3.h>
 
-PRIVATE int _input_key_to_glfw(input_key key) {
+PRIVATE int _input_key_to_glfw(input_key_t key) {
     switch (key) {
         case INPUT_KEY_SPACE:
             return GLFW_KEY_SPACE;
@@ -250,7 +253,7 @@ PRIVATE int _input_key_to_glfw(input_key key) {
     }
 }
 
-PRIVATE input_key _glfw_to_input_key(int key) {
+PRIVATE input_key_t _glfw_to_input_key(int key) {
     switch (key) {
         case GLFW_KEY_SPACE:
             return INPUT_KEY_SPACE;
@@ -497,10 +500,56 @@ PRIVATE input_key _glfw_to_input_key(int key) {
     }
 }
 
-bool input_key_down(app_t* app, input_key key) {
-    return glfwGetKey(app->_window, _input_key_to_glfw(key)) == GLFW_PRESS;
+void _input_glfw_key_callback(GLFWwindow* glfw_window, int glfw_key, int glfw_scancode, int glfw_action, int glfw_mods) {
+    // We don't process repeat actions
+    if (glfw_action == GLFW_REPEAT) {
+        return;
+    }
+
+    app_t* app = glfwGetWindowUserPointer(glfw_window);
+
+    input_key_t key = _glfw_to_input_key(glfw_key);
+    PANIC_ASSERT(key >= 0 && key < INPUT_KEY_COUNT, "Invalid input_key");
+
+    app->_input->key_states[key] = glfw_action == GLFW_PRESS ? INPUT_BUTTON_STATE_JUST_PRESSED : INPUT_BUTTON_STATE_JUST_RELEASED;
 }
 
-bool input_key_up(app_t* app, input_key key) {
+void _input_init(app_t* app) {
+    // adm_arena will guarentee allocated memory is zeroed out so our button buffers should all be INPUT_BUTTON_STATE_RELEASED aka 0
+    app->_input = arena_alloc(app->_arena, input_t);
+
+    glfwSetKeyCallback(app->_window, _input_glfw_key_callback);
+}
+
+// Expected to be called before glfwPollEvents
+void _input_frame(app_t* app) {
+    for (input_button_state_t key = 0; key < INPUT_KEY_COUNT; key++) {
+        if (app->_input->key_states[key] == INPUT_BUTTON_STATE_JUST_PRESSED) {
+            app->_input->key_states[key] = INPUT_BUTTON_STATE_PRESSED;
+        } else if (app->_input->key_states[key] == INPUT_BUTTON_STATE_JUST_RELEASED) {
+            app->_input->key_states[key] = INPUT_BUTTON_STATE_RELEASED;
+        }
+    }
+}
+
+input_button_state_t input_key_state(app_t* app, input_key_t key) {
+    PANIC_ASSERT(key >= 0 && key < INPUT_KEY_COUNT, "Invalid input_key");
+    return app->_input->key_states[key];
+}
+
+bool input_key_down(app_t* app, input_key_t key) {
+    input_button_state_t state = input_key_state(app, key);
+    return state == INPUT_BUTTON_STATE_JUST_PRESSED || INPUT_BUTTON_STATE_PRESSED;
+}
+
+bool input_key_up(app_t* app, input_key_t key) {
     return !input_key_down(app, key);
+}
+
+bool input_key_just_pressed(app_t* app, input_key_t key) {
+    return input_key_state(app, key) == INPUT_BUTTON_STATE_JUST_PRESSED;
+}
+
+bool input_key_just_released(app_t* app, input_key_t key) {
+    return input_key_state(app, key) == INPUT_BUTTON_STATE_JUST_RELEASED;
 }
