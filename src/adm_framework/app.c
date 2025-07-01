@@ -1,5 +1,6 @@
 #include "app.h"
 #include "input.h"
+#include "gpu.h"
 
 #include <adm_utils/util.h>
 #include <adm_utils/panic.h>
@@ -17,8 +18,11 @@ app_t* app_new(arena_t* arena, const app_def_t* def) {
 
     // Setup window
     PANIC_ASSERT(glfwInit() == GLFW_TRUE, "GLFW failed to initialize.");
+    
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     app->_window = glfwCreateWindow(def->window_size.width, def->window_size.height, def->title, NULL, NULL);
+    PANIC_ASSERT(app->_window != NULL, "Failed to create GLFW window.");
+
     glfwMakeContextCurrent(app->_window);
     glfwSetWindowUserPointer(app->_window, app);
 
@@ -27,6 +31,7 @@ app_t* app_new(arena_t* arena, const app_def_t* def) {
 
     // Init components
     _input_init(app);
+    _gpu_init(app);
 
     return app;
 }

@@ -1,6 +1,7 @@
 #include <adm_utils/arena.h>
 #include <adm_framework/app.h>
 #include <adm_framework/input.h>
+#include <adm_framework/gpu.h>
 
 #include <stdio.h>
 
@@ -13,10 +14,7 @@ int main() {
 
     app_show(app);
     while (app_frame(app) == true) {
-        input_button_state_t state = input_key_state(app, INPUT_KEY_W);
-        if (state != INPUT_BUTTON_STATE_RELEASED) {
-            printf("W key state: %i\n", state);
-        }
+        gpu_clear(app, input_key_down(app, INPUT_KEY_SPACE) ? COLOR_WHITE : COLOR_BLACK);
     }
 
     arena_destroy(&arena);
