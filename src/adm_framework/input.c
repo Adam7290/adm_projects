@@ -500,6 +500,19 @@ PRIVATE input_key_t _glfw_to_input_key(int key) {
     }
 }
 
+PRIVATE input_mouse_button_t _glfw_to_input_mouse_button(int button) {
+    switch (button) {
+        case GLFW_MOUSE_BUTTON_LEFT:
+            return INPUT_MOUSE_BUTTON_LEFT;
+        case GLFW_MOUSE_BUTTON_MIDDLE:
+            return INPUT_MOUSE_BUTTON_MIDDLE;
+        case GLFW_MOUSE_BUTTON_RIGHT:
+            return INPUT_MOUSE_BUTTON_RIGHT;
+        default:
+            return INPUT_MOUSE_BUTTON_UNKNOWN;
+    }
+}
+
 void _input_glfw_key_callback(GLFWwindow* glfw_window, int glfw_key, int glfw_scancode, int glfw_action, int glfw_mods) {
     // We don't process repeat actions
     if (glfw_action == GLFW_REPEAT) {
@@ -509,9 +522,23 @@ void _input_glfw_key_callback(GLFWwindow* glfw_window, int glfw_key, int glfw_sc
     app_t* app = glfwGetWindowUserPointer(glfw_window);
 
     input_key_t key = _glfw_to_input_key(glfw_key);
-    PANIC_ASSERT(key >= 0 && key < INPUT_KEY_COUNT, "Invalid input_key");
+    PANIC_ASSERT(key >= 0 && key < _input_key_count, "Invalid input_key");
 
     app->_input->key_states[key] = glfw_action == GLFW_PRESS ? INPUT_BUTTON_STATE_JUST_PRESSED : INPUT_BUTTON_STATE_JUST_RELEASED;
+}
+
+void _input_glfw_mouse_button_callback(GLFWwindow* glfw_window, int glfw_button, int glfw_action, int glfw_mods) {
+    // We don't process repeat actions
+    if (glfw_action == GLFW_REPEAT) {
+        return;
+    }
+
+    app_t* app = glfwGetWindowUserPointer(glfw_window);
+
+    input_key_t mouse_button = _glfw_to_input_mouse_button(glfw_button);
+    PANIC_ASSERT(mouse_button >= 0 && mouse_button < _input_mouse_button_count, "Invalid input_mouse_button");
+
+    app->_input->mouse_button_states[mouse_button] = glfw_action == GLFW_PRESS ? INPUT_BUTTON_STATE_JUST_PRESSED : INPUT_BUTTON_STATE_JUST_RELEASED;
 }
 
 void _input_init(app_t* app) {
@@ -519,27 +546,38 @@ void _input_init(app_t* app) {
     app->_input = arena_alloc(app->_arena, input_t);
 
     glfwSetKeyCallback(app->_window, _input_glfw_key_callback);
+    glfwSetMouseButtonCallback(app->_window, _input_glfw_mouse_button_callback);
 }
 
 // Expected to be called before glfwPollEvents
 void _input_frame(app_t* app) {
-    for (input_button_state_t key = 0; key < INPUT_KEY_COUNT; key++) {
+    // Update key_states
+    for (input_button_state_t key = 0; key < _input_key_count; key++) {
         if (app->_input->key_states[key] == INPUT_BUTTON_STATE_JUST_PRESSED) {
             app->_input->key_states[key] = INPUT_BUTTON_STATE_PRESSED;
         } else if (app->_input->key_states[key] == INPUT_BUTTON_STATE_JUST_RELEASED) {
             app->_input->key_states[key] = INPUT_BUTTON_STATE_RELEASED;
         }
     }
+
+    // Update mouse_button_states
+    for (input_button_state_t mouse_button = 0; mouse_button < _input_mouse_button_count; mouse_button++) {
+        if (app->_input->mouse_button_states[mouse_button] == INPUT_BUTTON_STATE_JUST_PRESSED) {
+            app->_input->mouse_button_states[mouse_button] = INPUT_BUTTON_STATE_PRESSED;
+        } else if (app->_input->mouse_button_states[mouse_button] == INPUT_BUTTON_STATE_JUST_RELEASED) {
+            app->_input->mouse_button_states[mouse_button] = INPUT_BUTTON_STATE_RELEASED;
+        }
+    }
 }
 
 input_button_state_t input_key_state(app_t* app, input_key_t key) {
-    PANIC_ASSERT(key >= 0 && key < INPUT_KEY_COUNT, "Invalid input_key");
+    PANIC_ASSERT(key >= 0 && key < _input_key_count, "Invalid input_key");
     return app->_input->key_states[key];
 }
 
 bool input_key_down(app_t* app, input_key_t key) {
     input_button_state_t state = input_key_state(app, key);
-    return state == INPUT_BUTTON_STATE_JUST_PRESSED || INPUT_BUTTON_STATE_PRESSED;
+    return state == INPUT_BUTTON_STATE_JUST_PRESSED || state == INPUT_BUTTON_STATE_PRESSED;
 }
 
 bool input_key_up(app_t* app, input_key_t key) {
@@ -552,4 +590,26 @@ bool input_key_just_pressed(app_t* app, input_key_t key) {
 
 bool input_key_just_released(app_t* app, input_key_t key) {
     return input_key_state(app, key) == INPUT_BUTTON_STATE_JUST_RELEASED;
+}
+
+input_button_state_t input_mouse_button_state(app_t* app, input_mouse_button_t mouse_button) {
+    PANIC_ASSERT(mouse_button >= 0 && mouse_button < _input_mouse_button_count, "Invalid input_mouse_button");
+    return app->_input->mouse_button_states[mouse_button];
+}
+
+bool input_mouse_button_down(app_t* app, input_mouse_button_t mouse_button) {
+    input_button_state_t state = input_key_state(app, mouse_button);
+    return state == INPUT_BUTTON_STATE_JUST_PRESSED || INPUT_BUTTON_STATE_PRESSED;
+}
+
+bool input_mouse_button_up(app_t* app, input_mouse_button_t mouse_button) {
+    return !input_mouse_button_down(app, mouse_button);
+}
+
+bool input_mouse_button_pressed(app_t* app, input_mouse_button_t mouse_button) {
+    return input_key_state(app, mouse_button) == INPUT_BUTTON_STATE_JUST_PRESSED;
+}
+
+bool input_mouse_button_released(app_t* app, input_mouse_button_t mouse_button) {
+    return input_key_state(app, mouse_button) == INPUT_BUTTON_STATE_JUST_RELEASED;
 }

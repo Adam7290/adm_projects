@@ -124,8 +124,16 @@ typedef enum input_key_t {
     INPUT_KEY_RIGHT_ALT,
     INPUT_KEY_RIGHT_SUPER,
     INPUT_KEY_MENU,
-    INPUT_KEY_COUNT,
+    _input_key_count,
 } input_key_t;
+
+typedef enum input_mouse_button_t {
+    INPUT_MOUSE_BUTTON_UNKNOWN = -1,
+    INPUT_MOUSE_BUTTON_LEFT,
+    INPUT_MOUSE_BUTTON_MIDDLE,
+    INPUT_MOUSE_BUTTON_RIGHT,
+    _input_mouse_button_count,
+} input_mouse_button_t;
 
 typedef enum input_button_state_t {
     INPUT_BUTTON_STATE_RELEASED,
@@ -135,7 +143,8 @@ typedef enum input_button_state_t {
 } input_button_state_t;
 
 typedef struct input_t {
-    u8 key_states[INPUT_KEY_COUNT];
+    u8 key_states[_input_key_count];
+    u8 mouse_button_states[_input_mouse_button_count];
 } input_t;
 
 typedef struct app_t app_t;
@@ -147,3 +156,8 @@ bool input_key_down(app_t* app, input_key_t key);
 bool input_key_up(app_t* app, input_key_t key);
 bool input_key_just_pressed(app_t* app, input_key_t key);
 bool input_key_just_released(app_t* app, input_key_t key);
+input_button_state_t input_mouse_button_state(app_t* app, input_mouse_button_t mouse_button);
+bool input_mouse_button_down(app_t* app, input_mouse_button_t mouse_button);
+bool input_mouse_button_up(app_t* app, input_mouse_button_t mouse_button);
+bool input_mouse_button_pressed(app_t* app, input_mouse_button_t mouse_button);
+bool input_mouse_button_released(app_t* app, input_mouse_button_t mouse_button);
