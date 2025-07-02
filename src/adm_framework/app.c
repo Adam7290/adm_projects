@@ -1,6 +1,7 @@
 #include "app.h"
 #include "input.h"
 #include "gpu.h"
+#include "time.h"
 
 #include <adm_utils/util.h>
 #include <adm_utils/panic.h>
@@ -30,6 +31,7 @@ app_t* app_new(arena_t* arena, const app_def_t* def) {
     arena_defer(arena, glfwTerminate, void);
 
     // Init components
+    _time_init(app);
     _input_init(app);
     _gpu_init(app);
 
@@ -49,6 +51,7 @@ bool app_frame(app_t* app) {
         return false;
     }
 
+    _time_frame(app);
     _input_frame(app);
     _gpu_frame(app);
 
@@ -56,10 +59,6 @@ bool app_frame(app_t* app) {
     glfwPollEvents();
     
     return true;
-}
-
-f32 app_time_elapsed(app_t* app) {
-    return (f32)glfwGetTime();
 }
 
 app_window_size_t app_framebuffer_size(app_t* app) {
