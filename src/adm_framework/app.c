@@ -58,6 +58,10 @@ bool app_frame(app_t* app) {
     return true;
 }
 
+f32 app_time_elapsed(app_t* app) {
+    return (f32)glfwGetTime();
+}
+
 app_window_size_t app_framebuffer_size(app_t* app) {
     int width, height;
     glfwGetFramebufferSize(app->_window, &width, &height);
