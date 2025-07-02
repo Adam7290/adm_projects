@@ -22,7 +22,7 @@ void gpu_clear(app_t* app, color_t color) {
     glClear(GL_COLOR_BUFFER_BIT);
 }
 
-const gpu_vert_decl_t gpu_vert_decl_new(app_t* app, usize count, ...) {
+gpu_vert_decl_t gpu_vert_decl_new(app_t* app, usize count, ...) {
     va_list args;
     va_start(args, count);
 
