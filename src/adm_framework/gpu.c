@@ -12,6 +12,10 @@ void _gpu_init(app_t* app) {
     PANIC_ASSERT(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 1, "Failed to load GLAD.");
 }
 
+void _gpu_frame(app_t* app) {
+    glUseProgram(0);
+}
+
 void gpu_clear(app_t* app, color_t color) {
     glClearColor(
         color.red / 255.0f, 
@@ -47,12 +51,13 @@ gpu_verts_t* gpu_verts_create(app_t* app, arena_t* arena, gpu_vert_decl_t* vert_
     gpu_verts_t* verts = arena_defer(arena, _gpu_verts_destroy_internal, gpu_verts_t);
     verts->_arena = arena;
     verts->_app = app;
+    verts->_buffer_length = 0;
 
     glGenVertexArrays(1, &verts->_vao);
     glGenBuffers(1, &verts->_vbo);
 
     glBindVertexArray(verts->_vao);
-
+    glBindBuffer(GL_ARRAY_BUFFER, verts->_vbo);
 
     // Calculate stride
     usize stride = 0;
@@ -66,12 +71,13 @@ gpu_verts_t* gpu_verts_create(app_t* app, arena_t* arena, gpu_vert_decl_t* vert_
     usize offset = 0;
     for (int i = 0; i < _gpu_vert_decl_length(vert_decl); i++) {
         gpu_vert_attr_t* vert = _gpu_vert_decl_get_unchecked(vert_decl, i);
-        glVertexAttribPointer(i, vert->size, GL_FLOAT, GL_FALSE, stride, (void*)offset); // MAGIC GL_FLOAT
         glEnableVertexAttribArray(i);
+        glVertexAttribPointer(i, vert->size, GL_FLOAT, GL_FALSE, stride, (void*)offset); // MAGIC GL_FLOAT
         offset += vert->size * sizeof(float); // MAGIC TYPE SIZEOF
     }
 
     glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 
     return verts;
 }
@@ -80,14 +86,59 @@ void gpu_verts_upload(gpu_verts_t* verts, void* ptr, usize length) {
     glBindBuffer(GL_ARRAY_BUFFER, verts->_vbo);
     glBufferData(GL_ARRAY_BUFFER, length, ptr, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+    verts->_buffer_length = length;
 }
 
 void gpu_verts_draw(gpu_verts_t* verts) {
     glBindVertexArray(verts->_vao);
-    glDrawArrays(GL_TRIANGLES, 0, verts->_vertex_size);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
     glBindVertexArray(0);
 }
 
 void gpu_verts_destroy(gpu_verts_t* verts) {
     arena_free(verts->_arena, verts);
+}
+
+PRIVATE void _gpu_shader_destroy_internal(gpu_shader_t* shader) {
+    glDeleteProgram(shader->_handle);
+}
+
+gpu_shader_t* gpu_shader_create(app_t* app, arena_t* arena) {
+    gpu_shader_t* shader = arena_defer(arena, _gpu_shader_destroy_internal, gpu_shader_t);
+    
+    shader->_app = app;
+    shader->_arena = arena;
+    shader->_handle = glCreateProgram();
+
+    return shader;
+}
+
+void gpu_shader_upload_source(gpu_shader_t* shader, const char* vertex_source, const char* fragment_source) {
+    u32 vertex = glCreateShader(GL_VERTEX_SHADER);
+    glShaderSource(vertex, 1, &vertex_source, NULL);
+    glCompileShader(vertex);
+
+    u32 fragment = glCreateShader(GL_FRAGMENT_SHADER);
+    glShaderSource(fragment, 1, &fragment_source, NULL);
+    glCompileShader(fragment);
+
+    glAttachShader(shader->_handle, vertex);
+    glAttachShader(shader->_handle, fragment);
+    glLinkProgram(shader->_handle);
+
+    glDeleteShader(vertex);
+    glDeleteShader(fragment);
+}
+
+void gpu_shader_use(NULLABLE gpu_shader_t* shader) {
+    if (shader != NULL) {
+        glUseProgram(shader->_handle);
+    } else {
+        glUseProgram(0);
+    }
+}
+
+void gpu_shader_destroy(gpu_shader_t* shader) {
+    arena_free(shader->_arena, shader);
 }
