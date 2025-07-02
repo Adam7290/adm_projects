@@ -141,6 +141,10 @@ void gpu_shader_use(NULLABLE gpu_shader_t* shader) {
     }
 }
 
+void gpu_shader_set_f32(gpu_shader_t* shader, const char* name, f32 value) {
+    glProgramUniform1f(shader->_handle, glGetUniformLocation(shader->_handle, name), value);
+}
+
 void gpu_shader_destroy(gpu_shader_t* shader) {
     arena_free(shader->_arena, shader);
 }

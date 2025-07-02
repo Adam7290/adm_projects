@@ -48,4 +48,5 @@ void gpu_verts_destroy(gpu_verts_t* verts);
 gpu_shader_t* gpu_shader_create(app_t* app, arena_t* arena);
 void gpu_shader_upload_source(gpu_shader_t* shader, const char* vertex_source, const char* fragment_source);
 void gpu_shader_use(NULLABLE gpu_shader_t* shader);
+void gpu_shader_set_f32(gpu_shader_t* shader, const char* name, f32 value);
 void gpu_shader_destroy(gpu_shader_t* shader);
