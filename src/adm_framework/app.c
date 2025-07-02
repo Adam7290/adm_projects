@@ -61,6 +61,14 @@ bool app_frame(app_t* app) {
     return true;
 }
 
+u64 app_frame_count(app_t* app) {
+    return app->_frame_count;
+}
+
+u64 app_frames_per_second(app_t* app) {
+    return 1.0f / time_app_delta(app).time;
+}
+
 app_window_size_t app_framebuffer_size(app_t* app) {
     int width, height;
     glfwGetFramebufferSize(app->_window, &width, &height);

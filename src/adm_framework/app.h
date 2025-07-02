@@ -22,14 +22,16 @@ typedef struct app_t {
     input_t* _input;
     gpu_t* _gpu;
     _time_t* _time;
+
+    u64 _frame_count;
 } app_t;
 
 app_t* app_new(arena_t* arena, const app_def_t* def);
 void app_show(app_t* app);
 void app_hide(app_t* app);
 bool app_frame(app_t* app);
-f32 app_time_elapsed(app_t* app);
-f32 app_time_delta(app_t* app);
+u64 app_frame_count(app_t* app);
+u64 app_frames_per_second(app_t* app);
 app_window_size_t app_framebuffer_size(app_t* app);
 app_window_size_t app_window_size(app_t* app);
 void app_set_window_size(app_t* app, const app_window_size_t* size);
