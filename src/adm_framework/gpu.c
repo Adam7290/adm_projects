@@ -13,6 +13,8 @@ void _gpu_init(app_t* app) {
 }
 
 void _gpu_frame(app_t* app) {
+    app_window_size_t framebuffer_size = app_framebuffer_size(app);
+    glViewport(0, 0, framebuffer_size.width, framebuffer_size.height);
     glUseProgram(0);
 }
 

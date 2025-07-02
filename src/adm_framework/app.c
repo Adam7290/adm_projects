@@ -50,11 +50,18 @@ bool app_frame(app_t* app) {
     }
 
     _input_frame(app);
+    _gpu_frame(app);
 
     glfwSwapBuffers(app->_window);
     glfwPollEvents();
     
     return true;
+}
+
+app_window_size_t app_framebuffer_size(app_t* app) {
+    int width, height;
+    glfwGetFramebufferSize(app->_window, &width, &height);
+    return (app_window_size_t){ (u32)width, (u32)height };
 }
 
 app_window_size_t app_window_size(app_t* app) {
