@@ -113,6 +113,10 @@ string_t string_concat_new(arena_t* arena, string_t* string1, string_t* string2)
     return new;
 }
 
+void string_concat_char(string_t* string, char c) {
+    _admstrvec_push(&string->_array, c);
+}
+
 void string_upper(string_t* string) {
     for (int i = 0; i < string_length(string); i++) {
         string_set_char_unchecked(string, i, toupper(string_char_unchecked(string, i)));

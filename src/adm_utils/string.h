@@ -44,6 +44,8 @@ void string_concat_cstr(string_t* string, char cstr[NULLTERM]);
 void string_concat_ncstr(string_t* string, char* cstr, usize length);
 // Same as string_concat but store result in new string_t
 string_t string_concat_new(arena_t* arena, string_t* string1, string_t* string2);
+// Concatenate a singular character
+void string_concat_char(string_t* string, char c);
 // Makes content uppercase
 void string_upper(string_t* string);
 // Makes content lowercase
