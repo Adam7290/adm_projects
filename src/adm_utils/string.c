@@ -114,7 +114,7 @@ string_t string_concat_new(arena_t* arena, string_t* string1, string_t* string2)
 }
 
 void string_concat_char(string_t* string, char c) {
-    _admstrvec_push(&string->_array, c);
+    string_concat_ncstr(string, &c, 1);
 }
 
 void string_upper(string_t* string) {
