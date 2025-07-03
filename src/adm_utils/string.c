@@ -10,7 +10,7 @@ string_t string_new_empty(arena_t* arena) {
     };
 }
 
-string_t string_new(arena_t* arena, char cstr[NULLTERM]) {
+string_t string_new(arena_t* arena, const char* cstr) {
     string_t string = string_new_empty(arena);
     string_concat_cstr(&string, cstr);
     return string;
@@ -58,11 +58,11 @@ bool string_equals(string_t* string1, string_t* string2) {
     return string_equals_ncstr(string1, string_ptr(string2), string_length(string2));
 }
 
-bool string_equals_cstr(string_t* string, char cstr[NULLTERM]) {
+bool string_equals_cstr(string_t* string, const char* cstr) {
     return string_equals_ncstr(string, cstr, strlen(cstr));
 }
 
-bool string_equals_ncstr(string_t* string, char* cstr, usize length) {
+bool string_equals_ncstr(string_t* string, const char* cstr, usize length) {
     if (string_length(string) != length) {
         return false;
     }
@@ -74,11 +74,11 @@ void string_concat(string_t* string1, string_t* string2) {
     string_concat_ncstr(string1, string_ptr(string2), string_length(string2));
 }
 
-void string_concat_cstr(string_t* string, char cstr[NULLTERM]) {
+void string_concat_cstr(string_t* string, const char* cstr) {
     string_concat_ncstr(string, cstr, strlen(cstr));
 }
 
-void string_concat_ncstr(string_t* string, char* cstr, usize length) {
+void string_concat_ncstr(string_t* string, const char* cstr, usize length) {
     if (length == 0) {
         return;
     }
