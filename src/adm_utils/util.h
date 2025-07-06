@@ -17,7 +17,6 @@ typedef double f64;
 typedef u8 byte;
 
 #define NULLABLE
-#define NULLTERM
 #define NORETURN
 #define NODISCARD
 #define PUBLIC_READONLY
