@@ -15,6 +15,10 @@ typedef ptrdiff_t isize;
 typedef float f32;
 typedef double f64;
 typedef u8 byte;
+typedef i8 sbyte;
+typedef unsigned short ushort;
+typedef unsigned int uint;
+typedef unsigned long ulong;
 
 #define NULLABLE
 #define NORETURN
