@@ -1,6 +1,8 @@
 #define VEC_IMPLEMENTATION
 #include "string.h"
 
+#include "stream.h"
+
 #include <ctype.h>
 
 string_t string_new_empty(arena_t* arena) {
@@ -171,3 +173,23 @@ iter_t string_end(string_t* string) {
 hash_t hash_string(string_t* string) {
     return hash_bytes(string_ptr(string), string_length(string) * sizeof(char));
 }
+
+// STREAM STUFF BEGIN
+
+PRIVATE void _string_stream_write_bytes(stream_t* stream, void* bytes, usize length) {
+    string_t* string = stream_user_data(stream);
+    string_concat_ncstr(string, bytes, length);
+}
+
+PRIVATE const stream_vtable_t _string_stream_vtable = (stream_vtable_t){
+    .write_bytes = _string_stream_write_bytes,
+};
+
+stream_t string_stream_new(string_t* string) {
+    return (stream_t){
+        ._user_data = string,
+        ._vtable = &_string_stream_vtable,
+    };
+}
+
+// STREAM STUFF END

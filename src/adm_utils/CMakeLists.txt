@@ -16,6 +16,7 @@ add_library(${LIBRARY_NAME}
     hash.c
     iter.c
     format.c
+    stream.c
 )
 target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 

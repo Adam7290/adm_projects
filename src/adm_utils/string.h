@@ -1,13 +1,14 @@
 #pragma once
 
-#include "hash.h"
 #include "util.h"
-#include "arena.h"
-#include <stdbool.h>
+#include "hash.h"
 
 #define VEC_TEMPLATE char
 #define VEC_TEMPLATE_PREFIX _admstrvec_
 #include "vec_impl.h"
+
+typedef struct arena_t arena_t;
+typedef struct stream_t stream_t;
 
 // A linear array of characters with string related functions
 typedef struct string_t {
@@ -65,6 +66,8 @@ char* string_ptr(string_t* string);
 
 iter_t string_begin(string_t* string);
 iter_t string_end(string_t* string);
+
+stream_t string_stream_new(string_t* string);
 
 // Hash function for a string_t
 hash_t hash_string(string_t* string);
