@@ -15,8 +15,15 @@ add_library(${LIBRARY_NAME}
     string.c 
     hash.c
     iter.c
+    format.c
 )
 target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
+
+# Add math
+find_library(MATH_LIBRARY m)
+if(MATH_LIBRARY)
+    target_link_libraries(${LIBRARY_NAME} PUBLIC ${MATH_LIBRARY})
+endif()
 
 # Tests
 add_executable(${LIBRARY_NAME_TEST} 
