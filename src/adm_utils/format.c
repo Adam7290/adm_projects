@@ -130,17 +130,3 @@ void format(stream_t* stream, const char* format_string, ...) {
     format_va_args(stream, format_string, &args);
     va_end(args);
 }
-
-#include "string.h"
-// TODO: Make console utilities (con_print, con_println)
-void format_print(const char* format_string, ...) {
-    va_list args;
-    va_start(args, format_string);
-    arena_t arena = arena_new();
-    string_t string = string_new_empty(&arena);
-    stream_t stream = string_stream_new(&string);
-    format_va_args(&stream, format_string, &args);
-    fputs(string_ptr(&string), stdout);
-    arena_destroy(&arena);
-    va_end(args);
-}

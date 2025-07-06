@@ -27,4 +27,3 @@ FORMAT_DECL(testing_t);
 
 void format_va_args(stream_t* stream, const char* format_string, va_list* args);
 void format(stream_t* stream, const char* format_string, ...);
-void format_print(const char* format_string, ...);

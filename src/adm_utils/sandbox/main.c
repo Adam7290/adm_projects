@@ -1,28 +1,45 @@
 #include <adm_utils/arena.h>
-#include <adm_utils/iter.h>
-
-#define LIST_IMPLEMENTATION
-#define LIST_TEMPLATE i32
-#include <adm_utils/list_impl.h>
-
-#define VEC_IMPLEMENTATION
-#define VEC_TEMPLATE i32
-#include <adm_utils/vec_impl.h>
+#include <adm_utils/format.h>
+#include <adm_utils/util.h>
+#include <adm_utils/console.h>
+#include <adm_utils/stream.h>
+#include <adm_utils/string.h>
 
 #include <stdio.h>
 
 int main() {
     arena_t arena = arena_new();
-    
-    list_i32_t list = list_i32_new(&arena);
-    list_i32_push_back(&list, 1);
-    list_i32_push_back(&list, 2);
-    list_i32_push_back(&list, 3);
-    list_i32_push_back(&list, 4);
+    string_t string = string_new_empty(&arena);
+    stream_t stream = console_stdout_stream();
 
-    for (iter_t it = list_i32_begin(&list); !iter_equals(it, list_i32_end(&list));) {
-        it = list_i32_remove(&list, it);
-    }
+    format(
+        &stream,
+        "%%%%: %%\n"
+        "%%s: %s\n"
+        "%%c: %c\n"
+        "%%i: %i\n"
+        "%%u: %u\n"
+        "%%x: %x\n" 
+        "%%X: %X\n"
+        "%%o: %o\n"
+        "%%zu: %zu\n"
+        "%%p: %p\n"
+        "%%$: %$\n"
+        ,
+        "Hello, World!", 
+        'F',
+        (int)(123),
+        (uint)(UINT32_MAX),
+        0xffaa11,
+        0xAABBCC,
+        020,
+        SIZE_MAX,
+        (void*)0xFF666AA,
+        FORMAT(testing_t, &(testing_t){
+            .hiiiii = 12345,
+            .byeeee = 54321,
+        })
+    );
 
     arena_destroy(&arena);
     return 0;
