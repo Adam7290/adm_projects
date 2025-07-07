@@ -2,6 +2,7 @@
 
 #include "util.h"
 #include "hash.h"
+#include "format.h"
 
 #define VEC_TEMPLATE char
 #define VEC_TEMPLATE_PREFIX _admstrvec_
@@ -14,6 +15,8 @@ typedef struct stream_t stream_t;
 typedef struct string_t {
     _admstrvec_t _array;
 } string_t;
+
+FORMAT_DECL(string_t);
 
 // Creates a new string with no content
 string_t string_new_empty(arena_t* arena);

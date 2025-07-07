@@ -5,6 +5,12 @@
 
 #include <ctype.h>
 
+FORMAT_IMPL(string_t)(stream_t* stream, string_t* string) {
+    if (string_empty(string) == false) {
+        stream_write(stream, string_ptr(string), string_length(string));
+    }
+}
+
 string_t string_new_empty(arena_t* arena) {
     _admstrvec_t array = _admstrvec_new(arena);
     return (string_t){

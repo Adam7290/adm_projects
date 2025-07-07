@@ -7,6 +7,8 @@
 
 struct stream_vtable_t;
 
+// An interface for reading(not implemented)/writing(implemented) bytes.
+// Does not need deallocating as it is basically a table of pointers on the stack.
 typedef struct stream_t {
     void* _user_data;
     const struct stream_vtable_t* _vtable;

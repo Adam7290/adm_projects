@@ -10,7 +10,7 @@
 int main() {
     arena_t arena = arena_new();
     string_t string = string_new_empty(&arena);
-    stream_t stream = console_stdout_stream();
+    stream_t stream = string_stream_new(&string);
 
     format(
         &stream,

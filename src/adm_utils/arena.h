@@ -35,7 +35,7 @@ void* arena_defer_raw(arena_t* arena, NULLABLE arena_defer_t func, NULLABLE usiz
 // Allocate raw bytes that are managed by the arena
 void* arena_alloc_raw(arena_t* arena, usize size);
 // Copy an allocated node in arena
-void* arena_alloc_copy_raw(arena_t* arena, void* mem);
+void* arena_alloc_copy_raw(arena_t* arena, const void* mem);
 // Free memory allocated in arena before the arena is cleaned/destroyed
 void arena_free(arena_t* arena, void* mem);
 // Calls all defered functions and frees all memory in arena
