@@ -3,6 +3,7 @@
 #include "app.h"
 
 #include <adm_utils/panic.h>
+#include <adm_utils/string.h>
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -117,20 +118,63 @@ gpu_shader_t* gpu_shader_create(app_t* app, arena_t* arena) {
 }
 
 void gpu_shader_upload_source(gpu_shader_t* shader, const char* vertex_source, const char* fragment_source) {
+    GLint success;
+
     u32 vertex = glCreateShader(GL_VERTEX_SHADER);
     glShaderSource(vertex, 1, &vertex_source, NULL);
     glCompileShader(vertex);
+    glGetShaderiv(vertex, GL_COMPILE_STATUS, &success);
+    if (success == GL_FALSE) {
+        GLint length;
+        glGetShaderiv(vertex, GL_INFO_LOG_LENGTH, &length);
+        
+        arena_t arena = arena_new();
+        char* error = arena_alloc_raw(&arena, length * sizeof(char));
+
+        glGetShaderInfoLog(vertex, length, &length, error);
+        glDeleteShader(vertex);
+
+        PANIC("Vertex shader compilation failed:\n%s", error);
+    }
 
     u32 fragment = glCreateShader(GL_FRAGMENT_SHADER);
     glShaderSource(fragment, 1, &fragment_source, NULL);
     glCompileShader(fragment);
+    glGetShaderiv(fragment, GL_COMPILE_STATUS, &success);
+    if (success == GL_FALSE) {
+        GLint length;
+        glGetShaderiv(fragment, GL_INFO_LOG_LENGTH, &length);
+
+        arena_t arena = arena_new();
+        char* error = arena_alloc_raw(&arena, length * sizeof(char));
+
+        glGetShaderInfoLog(fragment, length, &length, error);
+        glDeleteShader(vertex);
+        glDeleteShader(fragment);
+
+        PANIC("Fragment shader compilation failed:\n%s", error);
+    }
 
     glAttachShader(shader->_handle, vertex);
     glAttachShader(shader->_handle, fragment);
     glLinkProgram(shader->_handle);
 
-    glDeleteShader(vertex);
-    glDeleteShader(fragment);
+    glGetProgramiv(shader->_handle, GL_LINK_STATUS, &success);
+    if (success == GL_FALSE) {
+        GLint length;
+        glGetProgramiv(shader->_handle, GL_INFO_LOG_LENGTH, &length);
+
+        arena_t arena = arena_new();
+        char* error = arena_alloc_raw(&arena, length * sizeof(char));
+
+        glGetProgramInfoLog(shader->_handle, length, &length, error);
+        glDeleteProgram(shader->_handle);
+
+        PANIC("Shader program linking failed:\n%s", error);
+    }
+
+    glDetachShader(shader->_handle, vertex);
+    glDetachShader(shader->_handle, fragment);
 }
 
 void gpu_shader_use(NULLABLE gpu_shader_t* shader) {

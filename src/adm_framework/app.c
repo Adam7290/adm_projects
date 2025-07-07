@@ -20,6 +20,7 @@ app_t* app_new(arena_t* arena, const app_def_t* def) {
     // Setup window
     PANIC_ASSERT(glfwInit() == GLFW_TRUE, "GLFW failed to initialize.");
     
+    glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, def->debug);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
     app->_window = glfwCreateWindow(def->window_size.width, def->window_size.height, def->title, NULL, NULL);
     PANIC_ASSERT(app->_window != NULL, "Failed to create GLFW window.");

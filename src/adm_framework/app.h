@@ -10,6 +10,7 @@ typedef struct app_window_size_t {
 typedef struct app_def_t {
     const char* title;
     app_window_size_t window_size;
+    bool debug;
 } app_def_t;
 
 typedef struct input_t input_t;
