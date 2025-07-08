@@ -53,16 +53,21 @@ void MAP_SYMBOL(insert)(MAP_TYPE* map, hash_t key, MAP_TEMPLATE value);
 MAP_TEMPLATE MAP_SYMBOL(delete)(MAP_TYPE* map, hash_t key);
 // Get item with key
 NULLABLE MAP_TEMPLATE* MAP_SYMBOL(get)(MAP_TYPE* map, hash_t key);
-bool MAP_SYMBOL(has)(MAP_TYPE* map, hash_t key);
+// TODO: getc method
+bool MAP_SYMBOL(has)(const MAP_TYPE* map, hash_t key);
 // TODO: Free function
 // Returns a pointer to the map entry or NULL if doesn't exist
 // TODO: Return pointer instead
-NULLABLE MAP_SYMBOL(entry_t*) MAP_SYMBOL(find)(MAP_TYPE* map, hash_t key);
-iter_t MAP_SYMBOL(begin)(MAP_TYPE* map);
-iter_t MAP_SYMBOL(end)(MAP_TYPE* map);
+// TODO: Rename to get_entry
+// TODO: Make getc and get_entryc
+// TODO: Const iters
+NULLABLE MAP_SYMBOL(entry_t*) MAP_SYMBOL(get_entry)(const MAP_TYPE* map, hash_t key);
+const NULLABLE MAP_SYMBOL(entry_t*) MAP_SYMBOL(getc_entry)(const MAP_TYPE* map, hash_t key);
+iter_t MAP_SYMBOL(begin)(const MAP_TYPE* map);
+iter_t MAP_SYMBOL(end)(const MAP_TYPE* map);
 
-MAP_TEMPLATE MAP_SYMBOL(entry_value)(MAP_SYMBOL(entry_t*) entry);
-hash_t MAP_SYMBOL(entry_key)(MAP_SYMBOL(entry_t*) entry);
+MAP_TEMPLATE MAP_SYMBOL(entry_value)(const MAP_SYMBOL(entry_t*) entry);
+hash_t MAP_SYMBOL(entry_key)(const MAP_SYMBOL(entry_t*) entry);
 void MAP_SYMBOL(entry_set_value)(MAP_SYMBOL(entry_t*) entry, MAP_TEMPLATE value);
 
 #ifdef MAP_IMPLEMENTATION
@@ -71,23 +76,23 @@ PRIVATE const usize MAP_PRIVATE_SYMBOL(bucket_count_max) = 8;
 PRIVATE const f32 MAP_PRIVATE_SYMBOL(load_factor_max) = 2.0f;
 PRIVATE const f32 MAP_PRIVATE_SYMBOL(load_factor_min) = MAP_PRIVATE_SYMBOL(load_factor_max) / 4.0f;
 
-PRIVATE usize MAP_PRIVATE_SYMBOL(hash_to_bucket_index)(MAP_TYPE* map, hash_t hash) {
+PRIVATE usize MAP_PRIVATE_SYMBOL(hash_to_bucket_index)(const MAP_TYPE* map, hash_t hash) {
     return hash % MAP_PRIVATE_SYMBOL(bucket_vec_length)(&map->_buckets);
 }
 
-PRIVATE MAP_PRIVATE_SYMBOL(entry_list_t*) MAP_PRIVATE_SYMBOL(get_entry_list)(MAP_TYPE* map, hash_t key) {
-    MAP_PRIVATE_SYMBOL(bucket_vec_t*) buckets = &map->_buckets;
+PRIVATE MAP_PRIVATE_SYMBOL(entry_list_t*) MAP_PRIVATE_SYMBOL(get_entry_list)(const MAP_TYPE* map, hash_t key) {
+    const MAP_PRIVATE_SYMBOL(bucket_vec_t*) buckets = &map->_buckets;
 
     usize index = MAP_PRIVATE_SYMBOL(hash_to_bucket_index)(map, key);
-    MAP_PRIVATE_SYMBOL(entry_list_t*) entry_list = MAP_PRIVATE_SYMBOL(bucket_vec_get_unchecked)(buckets, index);
+    MAP_PRIVATE_SYMBOL(entry_list_t*) entry_list = MAP_PRIVATE_SYMBOL(bucket_vec_getc_unchecked)(buckets, index);
 
     return entry_list;
 }
 
-PRIVATE NULLABLE MAP_PRIVATE_SYMBOL(entry_list_t*) MAP_PRIVATE_SYMBOL(get_next_filled_entry_list)(MAP_TYPE* map, usize index) {
-    MAP_PRIVATE_SYMBOL(bucket_vec_t*) buckets = &map->_buckets;
+PRIVATE NULLABLE MAP_PRIVATE_SYMBOL(entry_list_t*) MAP_PRIVATE_SYMBOL(get_next_filled_entry_list)(const MAP_TYPE* map, usize index) {
+    const MAP_PRIVATE_SYMBOL(bucket_vec_t*) buckets = &map->_buckets;
     for (int i = index; i < MAP_PRIVATE_SYMBOL(bucket_vec_length)(buckets); i++) {
-        MAP_PRIVATE_SYMBOL(entry_list_t*) entry_list = MAP_PRIVATE_SYMBOL(bucket_vec_get_unchecked)(buckets, i);
+        MAP_PRIVATE_SYMBOL(entry_list_t*) entry_list = MAP_PRIVATE_SYMBOL(bucket_vec_getc_unchecked)(buckets, i);
         if (MAP_PRIVATE_SYMBOL(entry_list_empty)(entry_list) == false) {
             return entry_list;
         }
@@ -139,7 +144,7 @@ MAP_TYPE MAP_SYMBOL(new)(arena_t* arena) {
 }
 
 void MAP_SYMBOL(insert)(MAP_TYPE* map, hash_t key, MAP_TEMPLATE value) {
-    NULLABLE MAP_SYMBOL(entry_t*) entry = MAP_SYMBOL(find)(map, key);
+    NULLABLE MAP_SYMBOL(entry_t*) entry = MAP_SYMBOL(get_entry)(map, key);
 
     if (entry != NULL) {
         // Override value in existing entry
@@ -161,7 +166,7 @@ void MAP_SYMBOL(insert)(MAP_TYPE* map, hash_t key, MAP_TEMPLATE value) {
 
 MAP_TEMPLATE MAP_SYMBOL(delete)(MAP_TYPE* map, hash_t key) {
     MAP_PRIVATE_SYMBOL(entry_list_t*) entry_list = MAP_PRIVATE_SYMBOL(get_entry_list)(map, key);
-    MAP_SYMBOL(entry_t*) entry = MAP_SYMBOL(find)(map, key);
+    MAP_SYMBOL(entry_t*) entry = MAP_SYMBOL(get_entry)(map, key);
     if (entry != NULL) {
         MAP_PRIVATE_SYMBOL(entry_list_remove)(entry_list, MAP_PRIVATE_SYMBOL(entry_list_iter)(entry_list, entry));
         map->_entry_count--;
@@ -175,7 +180,7 @@ MAP_TEMPLATE MAP_SYMBOL(delete)(MAP_TYPE* map, hash_t key) {
     }
 }
 
-MAP_SYMBOL(entry_t*) MAP_SYMBOL(find)(MAP_TYPE* map, hash_t key) {
+MAP_SYMBOL(entry_t*) MAP_SYMBOL(get_entry)(const MAP_TYPE* map, hash_t key) {
     MAP_PRIVATE_SYMBOL(entry_list_t*) entry_list = MAP_PRIVATE_SYMBOL(get_entry_list)(map, key);
 
     for (iter_t it = MAP_PRIVATE_SYMBOL(entry_list_begin)(entry_list); !iter_equals(it, MAP_PRIVATE_SYMBOL(entry_list_end)(entry_list)); it = iter_next(it)) {
@@ -188,8 +193,12 @@ MAP_SYMBOL(entry_t*) MAP_SYMBOL(find)(MAP_TYPE* map, hash_t key) {
     return NULL;
 }
 
+const MAP_SYMBOL(entry_t*) MAP_SYMBOL(getc_entry)(const MAP_TYPE* map, hash_t key) {
+    return MAP_SYMBOL(get_entry)(map, key);
+}
+
 NULLABLE MAP_TEMPLATE* MAP_SYMBOL(get)(MAP_TYPE* map, hash_t key) {
-    MAP_SYMBOL(entry_t*) entry = MAP_SYMBOL(find)(map, key);
+    MAP_SYMBOL(entry_t*) entry = MAP_SYMBOL(get_entry)(map, key);
 
     if (entry != NULL) {
         return &entry->_value;
@@ -198,8 +207,8 @@ NULLABLE MAP_TEMPLATE* MAP_SYMBOL(get)(MAP_TYPE* map, hash_t key) {
     return NULL;
 }
 
-bool MAP_SYMBOL(has)(MAP_TYPE* map, hash_t key) {
-    return MAP_SYMBOL(find)(map, key) != NULL;
+bool MAP_SYMBOL(has)(const MAP_TYPE* map, hash_t key) {
+    return MAP_SYMBOL(getc_entry)(map, key) != NULL;
 }
 
 // ITERATOR STUFF //
@@ -212,8 +221,8 @@ PRIVATE iter_t MAP_PRIVATE_SYMBOL(iter_next_func)(iter_t self) {
         return self;
     }
 
-    MAP_TYPE* map = self._container;
-    MAP_SYMBOL(entry_t*) entry = self._element;
+    const MAP_TYPE* map = iterc_container(self);
+    const MAP_SYMBOL(entry_t*) entry = iterc_element(self);
 
     MAP_PRIVATE_SYMBOL(entry_list_t*) entry_list = MAP_PRIVATE_SYMBOL(get_entry_list)(map, MAP_SYMBOL(entry_key)(entry));
     iter_t entry_iter = MAP_PRIVATE_SYMBOL(entry_list_iter)(entry_list, entry);
@@ -245,7 +254,7 @@ PRIVATE iter_vtable_t MAP_PRIVATE_SYMBOL(iter_vtable) = (iter_vtable_t){
     .prev_func = MAP_PRIVATE_SYMBOL(iter_prev_func),
 };
 
-iter_t MAP_SYMBOL(begin)(MAP_TYPE* map) {
+iter_t MAP_SYMBOL(begin)(const MAP_TYPE* map) {
     MAP_PRIVATE_SYMBOL(entry_list_t*) entry_list = MAP_PRIVATE_SYMBOL(get_next_filled_entry_list)(map, 0);
 
     return (iter_t){
@@ -255,7 +264,7 @@ iter_t MAP_SYMBOL(begin)(MAP_TYPE* map) {
     };
 }
 
-iter_t MAP_SYMBOL(end)(MAP_TYPE* map) {
+iter_t MAP_SYMBOL(end)(const MAP_TYPE* map) {
     return (iter_t){
         ._container = map,
         ._element = NULL,
@@ -265,11 +274,11 @@ iter_t MAP_SYMBOL(end)(MAP_TYPE* map) {
 
 // ENTRY STUFF
 
-MAP_TEMPLATE MAP_SYMBOL(entry_value)(MAP_SYMBOL(entry_t*) entry) {
+MAP_TEMPLATE MAP_SYMBOL(entry_value)(const MAP_SYMBOL(entry_t*) entry) {
     return entry->_value;
 }
 
-hash_t MAP_SYMBOL(entry_key)(MAP_SYMBOL(entry_t*) entry) {
+hash_t MAP_SYMBOL(entry_key)(const MAP_SYMBOL(entry_t*) entry) {
     return entry->_key;
 }
 

@@ -35,21 +35,24 @@ typedef struct VEC_TYPE {
 // TODO: Descriptions of methods
 
 VEC_TYPE VEC_SYMBOL(new)(arena_t* arena);
-VEC_TYPE VEC_SYMBOL(new_with_data)(arena_t* arena, VEC_TEMPLATE src[], usize size);
-VEC_TYPE VEC_SYMBOL(clone)(VEC_TYPE* vec);
+VEC_TYPE VEC_SYMBOL(new_with_data)(arena_t* arena, const VEC_TEMPLATE src[], usize size);
+VEC_TYPE VEC_SYMBOL(clone)(const VEC_TYPE* vec);
 void VEC_SYMBOL(reallocate)(VEC_TYPE* vec, usize new_size);
 void VEC_SYMBOL(reserve)(VEC_TYPE* vec, usize size);
 void VEC_SYMBOL(shrink)(VEC_TYPE* vec);
 void VEC_SYMBOL(set_length)(VEC_TYPE* vec, usize length);
-usize VEC_SYMBOL(length)(VEC_TYPE* vec);
-usize VEC_SYMBOL(capacity)(VEC_TYPE* vec);
-VEC_TEMPLATE* VEC_SYMBOL(ptr)(VEC_TYPE* vec);
-bool VEC_SYMBOL(empty)(VEC_TYPE* vec);
+usize VEC_SYMBOL(length)(const VEC_TYPE* vec);
+usize VEC_SYMBOL(capacity)(const VEC_TYPE* vec);
+VEC_TEMPLATE* VEC_SYMBOL(ptr)(const VEC_TYPE* vec);
+bool VEC_SYMBOL(empty)(const VEC_TYPE* vec);
 void VEC_SYMBOL(push)(VEC_TYPE* vec, VEC_TEMPLATE element);
 void VEC_SYMBOL(push_array)(VEC_TYPE* vec, VEC_TEMPLATE src[], usize size);
 bool VEC_SYMBOL(pop)(VEC_TYPE* vec, VEC_TEMPLATE* out);
 VEC_TEMPLATE VEC_SYMBOL(pop_unwrap)(VEC_TYPE* vec);
-VEC_TEMPLATE* VEC_SYMBOL(get_unchecked)(VEC_TYPE* vec, usize index);
+const VEC_TEMPLATE* VEC_SYMBOL(getc_unwrap)(const VEC_TYPE* vec, usize index);
+const NULLABLE VEC_TEMPLATE* VEC_SYMBOL(getc)(const VEC_TYPE* vec, usize index);
+const VEC_TEMPLATE* VEC_SYMBOL(getc_unchecked)(const VEC_TYPE* vec, usize index);
+VEC_TEMPLATE* VEC_SYMBOL(get_unchecked)(VEC_TYPE* vec, usize index); // TODO: Make getc (get constant) methods
 NULLABLE VEC_TEMPLATE* VEC_SYMBOL(get)(VEC_TYPE* vec, usize index);
 VEC_TEMPLATE* VEC_SYMBOL(get_unwrap)(VEC_TYPE* vec, usize index);
 void VEC_SYMBOL(set_unchecked)(VEC_TYPE* vec, usize index, VEC_TEMPLATE element);
@@ -60,6 +63,9 @@ void VEC_SYMBOL(insert)(VEC_TYPE* vec, usize index, VEC_TEMPLATE element);
 VEC_TEMPLATE VEC_SYMBOL(remove)(VEC_TYPE* vec, usize index);
 void VEC_SYMBOL(clear)(VEC_TYPE* vec);
 void VEC_SYMBOL(free)(VEC_TYPE* vec);
+
+iter_t VEC_SYMBOL(begin)(const VEC_TYPE* vec);
+iter_t VEC_SYMBOL(end)(const VEC_TYPE* vec);
 
 #ifdef VEC_IMPLEMENTATION
 
@@ -76,7 +82,7 @@ VEC_TYPE VEC_SYMBOL(new)(arena_t* arena) {
     };
 }
 
-VEC_TYPE VEC_SYMBOL(new_with_data)(arena_t* arena, VEC_TEMPLATE src[], usize size) {
+VEC_TYPE VEC_SYMBOL(new_with_data)(arena_t* arena, const VEC_TEMPLATE src[], usize size) {
     VEC_TYPE vec = VEC_SYMBOL(new)(arena);
 
     VEC_SYMBOL(reserve)(&vec, size);
@@ -86,7 +92,7 @@ VEC_TYPE VEC_SYMBOL(new_with_data)(arena_t* arena, VEC_TEMPLATE src[], usize siz
 }
 
 // TODO: Pass in arena to allocate new VEC in
-VEC_TYPE VEC_SYMBOL(clone)(VEC_TYPE* vec) {
+VEC_TYPE VEC_SYMBOL(clone)(const VEC_TYPE* vec) {
     // If VEC is empty just return a new empty VEC
     if (vec->_ptr == NULL || vec->_capacity == 0) {
         return VEC_SYMBOL(new)(vec->_arena);
@@ -154,19 +160,19 @@ void VEC_SYMBOL(set_length)(VEC_TYPE* vec, usize length) {
     vec->_length = length;
 }
 
-usize VEC_SYMBOL(length)(VEC_TYPE* vec) {
+usize VEC_SYMBOL(length)(const VEC_TYPE* vec) {
     return vec->_length;
 }
 
-usize VEC_SYMBOL(capacity)(VEC_TYPE* vec) {
+usize VEC_SYMBOL(capacity)(const VEC_TYPE* vec) {
     return vec->_capacity;
 }
 
-VEC_TEMPLATE* VEC_SYMBOL(ptr)(VEC_TYPE* vec) {
+VEC_TEMPLATE* VEC_SYMBOL(ptr)(const VEC_TYPE* vec) {
     return vec->_ptr;
 }
 
-bool VEC_SYMBOL(empty)(VEC_TYPE* vec) {
+bool VEC_SYMBOL(empty)(const VEC_TYPE* vec) {
     return VEC_SYMBOL(length)(vec) == 0;
 }
 
@@ -214,6 +220,28 @@ VEC_TEMPLATE VEC_SYMBOL(pop_unwrap)(VEC_TYPE* vec) {
 
     if (!success) {
         PANIC("Nothing left in vec to pop.");
+    }
+
+    return value;
+}
+
+const VEC_TEMPLATE* VEC_SYMBOL(getc_unchecked)(const VEC_TYPE* vec, usize index) {
+    return vec->_ptr + index;
+}
+
+const NULLABLE VEC_TEMPLATE* VEC_SYMBOL(getc)(const VEC_TYPE* vec, usize index) {
+    if (index < 0 || index >= vec->_length) {
+        return NULL;
+    }
+
+    return vec->_ptr + index;
+}
+
+const VEC_TEMPLATE* VEC_SYMBOL(getc_unwrap)(const VEC_TYPE* vec, usize index) {
+    const NULLABLE VEC_TEMPLATE* value = VEC_SYMBOL(getc)(vec, index);
+
+    if (value == NULL) {
+        PANIC("Index outside of bounds.");
     }
 
     return value;
@@ -296,6 +324,7 @@ void VEC_SYMBOL(free)(VEC_TYPE* vec) {
 }
 
 // ITERATOR STUFF //
+// TODO: Const iters
 
 PRIVATE iter_t VEC_PRIVATE_SYMBOL(iter_next_func)(const iter_t self) {
     iter_t ret = self;
@@ -325,17 +354,17 @@ PRIVATE iter_vtable_t VEC_PRIVATE_SYMBOL(iter_vtable) = (iter_vtable_t){
     .distance_func = VEC_PRIVATE_SYMBOL(iter_distance_func),
 };
 
-iter_t VEC_SYMBOL(begin)(VEC_TYPE* vec) {
+iter_t VEC_SYMBOL(begin)(const VEC_TYPE* vec) {
     return (iter_t){
         ._container = vec,
-        ._element = VEC_SYMBOL(get)(vec, 0),
+        ._element = VEC_SYMBOL(getc)(vec, 0),
         ._vtable = &VEC_PRIVATE_SYMBOL(iter_vtable),
     };
 }
 
-iter_t VEC_SYMBOL(end)(VEC_TYPE* vec) {
+iter_t VEC_SYMBOL(end)(const VEC_TYPE* vec) {
     return (iter_t){
-        ._container = vec,
+        ._container = (void*)vec,
         ._element = vec->_ptr + VEC_SYMBOL(length)(vec),
         ._vtable = &VEC_PRIVATE_SYMBOL(iter_vtable),
     };

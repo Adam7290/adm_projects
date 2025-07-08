@@ -14,7 +14,7 @@ typedef struct formatter_t {
 } formatter_t;
 
 #define FORMAT_SYMBOL(type) _FORMAT__##type##__FUNC
-#define FORMAT_DECL(type) void FORMAT_SYMBOL(type)(stream_t* stream, type* data)
+#define FORMAT_DECL(type) void FORMAT_SYMBOL(type)(stream_t* stream, const type* data)
 #define FORMAT_IMPL(type) void FORMAT_SYMBOL(type)
 #define FORMAT(type, ...) (formatter_t){ .data = __VA_ARGS__, .func = (format_func_t)FORMAT_SYMBOL(type) }
 

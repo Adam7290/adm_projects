@@ -6,7 +6,7 @@
 // FNV-1a algorithm
 PRIVATE const hash_t _fnv_offset = 14695981039346656037ul;
 PRIVATE const hash_t _fnv_prime = 1099511628211ul;
-hash_t hash_bytes(void* ptr, usize size) {
+hash_t hash_bytes(const void* ptr, usize size) {
     hash_t hash = _fnv_offset;
 
     // Loop through each byte...

@@ -59,7 +59,7 @@ void* arena_alloc_raw(arena_t* arena, usize size) {
     return arena_defer_raw(arena, NULL, size);
 }
 
-void* arena_alloc_copy_raw(arena_t* arena, void* mem) {
+void* arena_alloc_copy_raw(arena_t* arena, const void* mem) {
     _arena_defer_node* node = (_arena_defer_node*)((byte*)mem - sizeof(_arena_defer_node));
     
     void* new = arena_defer_raw(arena, node->func, node->user_data_size);

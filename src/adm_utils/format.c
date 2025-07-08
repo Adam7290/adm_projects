@@ -12,7 +12,7 @@
 // This is mainly needed for PANIC formatting as we don't want to allocate heap memory in a panicked state.
 // Example: stream_write_cstr(stream_t* stream, const char* cstr)
 
-FORMAT_IMPL(testing_t)(stream_t* stream, testing_t* data) {
+FORMAT_IMPL(testing_t)(stream_t* stream, const testing_t* data) {
     format(stream, "{ .hiiiii = %i, .byeeee = %i }", data->hiiiii, data->byeeee);
 }
 

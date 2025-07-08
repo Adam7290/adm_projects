@@ -46,14 +46,15 @@ void LIST_SYMBOL(push_front)(LIST_TYPE* list, LIST_TEMPLATE element);
 bool LIST_SYMBOL(pop_back)(LIST_TYPE* list, LIST_TEMPLATE* out);
 bool LIST_SYMBOL(pop_front)(LIST_TYPE* list, LIST_TEMPLATE* out);
 iter_t LIST_SYMBOL(remove)(LIST_TYPE* list, const iter_t iter);
-bool LIST_SYMBOL(empty)(LIST_TYPE* list);
+bool LIST_SYMBOL(empty)(const LIST_TYPE* list);
 void LIST_SYMBOL(clear)(LIST_TYPE* list);
 // TODO: Free function
 // O(n) time
-usize LIST_SYMBOL(length)(LIST_TYPE* list);
-iter_t LIST_SYMBOL(iter)(LIST_TYPE* list, LIST_TEMPLATE* element);
-iter_t LIST_SYMBOL(begin)(LIST_TYPE* list);
-iter_t LIST_SYMBOL(end)(LIST_TYPE* list);
+// TODO: Make list count length internally to avoid O(n) time here
+usize LIST_SYMBOL(length)(const LIST_TYPE* list);
+iter_t LIST_SYMBOL(iter)(const LIST_TYPE* list, const LIST_TEMPLATE* element);
+iter_t LIST_SYMBOL(begin)(const LIST_TYPE* list);
+iter_t LIST_SYMBOL(end)(const LIST_TYPE* list);
 
 
 #ifdef LIST_IMPLEMENTATION
@@ -135,7 +136,7 @@ iter_t LIST_SYMBOL(remove)(LIST_TYPE* list, const iter_t iter) {
     return ret;
 }
 
-bool LIST_SYMBOL(empty)(LIST_TYPE* list) {
+bool LIST_SYMBOL(empty)(const LIST_TYPE* list) {
     return list->_head == NULL;
 }
 
@@ -146,7 +147,7 @@ void LIST_SYMBOL(clear)(LIST_TYPE* list) {
 }
 
 // TODO: Make O(1) time by incrementing/decrementing counter
-usize LIST_SYMBOL(length)(LIST_TYPE* list) {
+usize LIST_SYMBOL(length)(const LIST_TYPE* list) {
     usize length = 0;
 
     for (iter_t it = LIST_SYMBOL(begin)(list); !iter_equals(it, LIST_SYMBOL(end)(list)); it = iter_next(it)) {
@@ -158,9 +159,11 @@ usize LIST_SYMBOL(length)(LIST_TYPE* list) {
 
 // ITERATOR STUFF //
 
+// TODO: Const iters
+
 PRIVATE iter_t LIST_PRIVATE_SYMBOL(iter_next_func)(const iter_t self) {
     iter_t ret = self;
-    LIST_NODE_TYPE* current_node = ret._element;
+    LIST_NODE_TYPE* current_node = iter_element(ret);
 
     // If this current iter is null then just return null
     if (current_node == NULL) {
@@ -176,7 +179,7 @@ PRIVATE iter_t LIST_PRIVATE_SYMBOL(iter_prev_func)(const iter_t self) {
     LIST_TYPE* list = iter_container(self);
     
     iter_t ret = self;
-    LIST_NODE_TYPE* current_node = ret._element;
+    LIST_NODE_TYPE* current_node = iter_element(self);
 
     // If current_node is end then previous would be tail
     if (current_node == NULL) {
@@ -196,7 +199,7 @@ PRIVATE iter_vtable_t LIST_PRIVATE_SYMBOL(iter_vtable) = (iter_vtable_t){
     .distance_func = NULL,
 };
 
-iter_t LIST_SYMBOL(iter)(LIST_TYPE* list, LIST_TEMPLATE* element) {
+iter_t LIST_SYMBOL(iter)(const LIST_TYPE* list, const LIST_TEMPLATE* element) {
     return (iter_t){
         ._container = list,
         ._element = element,
@@ -204,7 +207,7 @@ iter_t LIST_SYMBOL(iter)(LIST_TYPE* list, LIST_TEMPLATE* element) {
     };
 }
 
-iter_t LIST_SYMBOL(begin)(LIST_TYPE* list) {
+iter_t LIST_SYMBOL(begin)(const LIST_TYPE* list) {
     return (iter_t){
         ._container = list,
         ._element = list->_head,
@@ -212,7 +215,7 @@ iter_t LIST_SYMBOL(begin)(LIST_TYPE* list) {
     };
 }
 
-iter_t LIST_SYMBOL(end)(LIST_TYPE* list) {
+iter_t LIST_SYMBOL(end)(const LIST_TYPE* list) {
     return (iter_t){
         ._container = list,
         ._element = NULL,

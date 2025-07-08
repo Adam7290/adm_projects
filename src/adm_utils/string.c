@@ -5,7 +5,7 @@
 
 #include <ctype.h>
 
-FORMAT_IMPL(string_t)(stream_t* stream, string_t* string) {
+FORMAT_IMPL(string_t)(stream_t* stream, const string_t* string) {
     if (string_empty(string) == false) {
         stream_write(stream, string_ptr(string), string_length(string));
     }
@@ -24,13 +24,13 @@ string_t string_new(arena_t* arena, const char* cstr) {
     return string;
 }
 
-string_t string_clone(string_t* string) {
+string_t string_clone(const string_t* string) {
     return (string_t){
         ._array = _admstrvec_clone(&string->_array),
     };
 }
 
-NULLABLE char string_char(string_t* string, usize index) {
+NULLABLE char string_char(const string_t* string, usize index) {
     if (index < 0 || index >= string_length(string)) {
         return '\0';
     }
@@ -38,7 +38,7 @@ NULLABLE char string_char(string_t* string, usize index) {
     return string->_array._ptr[index];
 }
 
-char string_char_unwrap(string_t* string, usize index) {
+char string_char_unwrap(const string_t* string, usize index) {
     if (index < 0 || index >= string_length(string)) {
         PANIC("Index outside of bounds.");
     }
@@ -46,7 +46,7 @@ char string_char_unwrap(string_t* string, usize index) {
     return string->_array._ptr[index];
 }
 
-char string_char_unchecked(string_t* string, usize index) {
+char string_char_unchecked(const string_t* string, usize index) {
     return string->_array._ptr[index];
 }
 
@@ -62,15 +62,15 @@ void string_set_char_unchecked(string_t* string, usize index, char ch) {
     string->_array._ptr[index] = ch;
 }
 
-bool string_equals(string_t* string1, string_t* string2) {
+bool string_equals(const string_t* string1, const string_t* string2) {
     return string_equals_ncstr(string1, string_ptr(string2), string_length(string2));
 }
 
-bool string_equals_cstr(string_t* string, const char* cstr) {
+bool string_equals_cstr(const string_t* string, const char* cstr) {
     return string_equals_ncstr(string, cstr, strlen(cstr));
 }
 
-bool string_equals_ncstr(string_t* string, const char* cstr, usize length) {
+bool string_equals_ncstr(const string_t* string, const char* cstr, usize length) {
     if (string_length(string) != length) {
         return false;
     }
@@ -78,7 +78,7 @@ bool string_equals_ncstr(string_t* string, const char* cstr, usize length) {
     return memcmp(string_ptr(string), cstr, length) == 0;
 }
 
-void string_concat(string_t* string1, string_t* string2) {
+void string_concat(string_t* string1, const string_t* string2) {
     string_concat_ncstr(string1, string_ptr(string2), string_length(string2));
 }
 
@@ -101,7 +101,7 @@ void string_concat_ncstr(string_t* string, const char* cstr, usize length) {
     _admstrvec_set(&string->_array, string->_array._length - 1, '\0');
 }
 
-string_t string_concat_new(arena_t* arena, string_t* string1, string_t* string2) {
+string_t string_concat_new(arena_t* arena, const string_t* string1, const string_t* string2) {
     string_t new = string_new_empty(arena);
     string_reserve(&new, string_length(string1) + string_length(string2) + 1);
 
@@ -141,7 +141,7 @@ void string_reserve(string_t* string, usize capacity) {
     _admstrvec_reserve(&string->_array, capacity);
 }
 
-usize string_length(string_t* string) {
+usize string_length(const string_t* string) {
     usize length = string->_array._length;
 
     // Return length without the null term
@@ -152,11 +152,11 @@ usize string_length(string_t* string) {
     }
 }
 
-usize string_capacity(string_t* string) {
+usize string_capacity(const string_t* string) {
     return _admstrvec_capacity(&string->_array);
 }
 
-bool string_empty(string_t* string) {
+bool string_empty(const string_t* string) {
     return string_ptr(string) == NULL || string->_array._length == 0;
 }
 
@@ -164,7 +164,7 @@ void string_clear(string_t* string) {
     _admstrvec_clear(&string->_array);
 }
 
-char* string_ptr(string_t* string) {
+char* string_ptr(const string_t* string) {
     return string->_array._ptr;
 }
 
@@ -176,7 +176,7 @@ iter_t string_end(string_t* string) {
     return _admstrvec_end(&string->_array);
 }
 
-hash_t hash_string(string_t* string) {
+hash_t hash_string(const string_t* string) {
     return hash_bytes(string_ptr(string), string_length(string) * sizeof(char));
 }
 

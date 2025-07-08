@@ -27,6 +27,14 @@ bool iter_equals(const iter_t iter1, const iter_t iter2) {
     return iter1._container == iter2._container && iter1._element == iter2._element;
 }
 
+const void* iterc_container(const iterc_t self) {
+    return self._container;
+}
+
+const void* iterc_element(const iterc_t self) {
+    return self._element;
+}
+
 void* iter_container(const iter_t self) {
     return self._container;
 }
