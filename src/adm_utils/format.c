@@ -1,5 +1,4 @@
 #include "format.h"
-#include "arena.h"
 #include "util.h"
 #include "stream.h"
 
@@ -16,7 +15,7 @@ FORMAT_IMPL(testing_t)(stream_t* stream, const testing_t* data) {
     format(stream, "{ .hiiiii = %i, .byeeee = %i }", data->hiiiii, data->byeeee);
 }
 
-PRIVATE char _format_digit_to_ascii(unsigned int digit, bool upper) {
+PRIVATE char _format_digit_to_ascii(uint digit, bool upper) {
     if (digit < 10) {
         return '0' + digit;
     }
@@ -53,9 +52,22 @@ _IMPL_ASCII_CONV_FUNC(long, _format_ltoa);
 _IMPL_ASCII_CONV_FUNC(ulong, _format_lutoa);
 _IMPL_ASCII_CONV_FUNC(usize, _format_zutoa);
 // TODO: long long types (who even uses those tbh)
-// TODO: Floating point to ascii (it is a LOT of work)
 
 #undef _IMPL_ASCII_CONV_FUNC
+
+void _format_ftoa(stream_t* stream, float val) {
+	// I tried to make an ftoa implementation myself but
+	// sometimes you gotta just swallow your pride and take the easy way out :(
+	char buffer[64];
+	snprintf(buffer, sizeof(buffer), "%f", val);
+	stream_write_cstr(stream, buffer);
+}
+
+void _format_dtoa(stream_t* stream, double val) {
+	char buffer[64];
+	snprintf(buffer, sizeof(buffer), "%lf", val);
+	stream_write_cstr(stream, buffer);
+}
 
 // Returns: length of spec
 // TODO: Specifier flags
@@ -88,6 +100,12 @@ PRIVATE usize _format_process_spec(stream_t* stream, const char* spec, va_list* 
     } else if (strncmp(spec, "%o", 2) == 0) {
         _format_utoa(stream, va_arg(*args, uint), 8, false);
         return 2;
+	} else if (strncmp(spec, "%f", 2) == 0) {
+		_format_ftoa(stream, (float)va_arg(*args, double));
+		return 2;
+	} else if (strncmp(spec, "%lf", 2) == 0) {
+		_format_dtoa(stream, va_arg(*args, double));
+		return 3;
     } else if (strncmp(spec, "%p", 2) == 0) {
         stream_write_cstr(stream, "0x");
         _format_zutoa(stream, (usize)va_arg(*args, void*), 16, false);
@@ -99,6 +117,7 @@ PRIVATE usize _format_process_spec(stream_t* stream, const char* spec, va_list* 
     }
 
     stream_write_cstr(stream, spec);
+	return 2;
 }
 
 // TODO: Optimization: Reserve ~1.5x format_string length (when stream reserve functionality implemented)
