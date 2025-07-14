@@ -1,15 +1,8 @@
 #define VEC_IMPLEMENTATION
 #include "string.h"
-
 #include "stream.h"
 
 #include <ctype.h>
-
-FORMAT_IMPL(string_t)(stream_t* stream, const string_t* string) {
-    if (string_empty(string) == false) {
-        stream_write(stream, string_ptr(string), string_length(string));
-    }
-}
 
 string_t string_new_empty(arena_t* arena) {
     _admstrvec_t array = _admstrvec_new(arena);
@@ -182,7 +175,7 @@ hash_t hash_string(const string_t* string) {
 
 // STREAM STUFF BEGIN
 
-PRIVATE void _string_stream_write_bytes(stream_t* stream, void* bytes, usize length) {
+PRIVATE void _string_stream_write_bytes(stream_t* stream, const void* bytes, usize length) {
     string_t* string = stream_user_data(stream);
     string_concat_ncstr(string, bytes, length);
 }

@@ -1,5 +1,6 @@
 #pragma once
 #include "util.h"
+#include "format.h"
 
 typedef void(*panic_handler_t)();
 
@@ -7,8 +8,9 @@ typedef void(*panic_handler_t)();
 panic_handler_t panic_set_handler(NULLABLE panic_handler_t func);
 
 NORETURN int _panic(const char* file_name, i32 line, NULLABLE const char* message, ...);
+NORETURN int _assert(const char* file_name, i32 line, NULLABLE const char* message, ...);
 #define PANIC(NULLABLE_msg, ...) _panic(__FILE__, __LINE__, NULLABLE_msg, ## __VA_ARGS__)
-#define PANIC_ASSERT(expr, msg, ...) (!(expr) && _panic(__FILE__, __LINE__, "Assertion failed: %s: %s", #expr, msg, ## __VA_ARGS__))
+#define PANIC_ASSERT(expr, msg, ...) (!(expr) && _panic(__FILE__, __LINE__, "Assertion failed: {}: {}", FORMAT(cstr, #expr), FORMAT(cstr, msg), ## __VA_ARGS__))
 
 #define UNIMPLEMENTED_FUNCTION() PANIC("Unimplemented function.")
 

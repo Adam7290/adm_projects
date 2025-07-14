@@ -7,14 +7,6 @@
 #include <string.h>
 #include <math.h>
 
-// TODO: Make stream library for mediums to format like a file/console stream.
-// This is mainly needed for PANIC formatting as we don't want to allocate heap memory in a panicked state.
-// Example: stream_write_cstr(stream_t* stream, const char* cstr)
-
-FORMAT_IMPL(testing_t)(stream_t* stream, const testing_t* data) {
-    format(stream, "{ .hiiiii = %i, .byeeee = %i }", data->hiiiii, data->byeeee);
-}
-
 PRIVATE char _format_digit_to_ascii(uint digit, bool upper) {
     if (digit < 10) {
         return '0' + digit;
@@ -27,8 +19,12 @@ PRIVATE char _format_digit_to_ascii(uint digit, bool upper) {
     return '0' + 7 + digit;
 }
 
-#define _IMPL_ASCII_CONV_FUNC(type, funcname) \
-PRIVATE void funcname(stream_t* stream, type i, int base, bool upper) { \
+#define _FORMAT_IMPL_INTEGER(type) \
+FORMAT_IMPL(type)(stream_t* stream, const FORMAT_ARGS_TYPE(type)* args) { \
+	type i = args->value; \
+	uint base = args->base != 0 ? args->base : 10; \
+	bool upper = args->upper; \
+	 \
     if (i == 0) { \
         stream_write_char(stream, '0'); \
         return; \
@@ -46,78 +42,49 @@ PRIVATE void funcname(stream_t* stream, type i, int base, bool upper) { \
     } \
 }
 
-_IMPL_ASCII_CONV_FUNC(int, _format_itoa);
-_IMPL_ASCII_CONV_FUNC(uint, _format_utoa);
-_IMPL_ASCII_CONV_FUNC(long, _format_ltoa);
-_IMPL_ASCII_CONV_FUNC(ulong, _format_lutoa);
-_IMPL_ASCII_CONV_FUNC(usize, _format_zutoa);
-// TODO: long long types (who even uses those tbh)
+_FORMAT_IMPL_INTEGER(int);
+_FORMAT_IMPL_INTEGER(uint);
+_FORMAT_IMPL_INTEGER(long);
+_FORMAT_IMPL_INTEGER(ulong);
+_FORMAT_IMPL_INTEGER(usize);
 
-#undef _IMPL_ASCII_CONV_FUNC
+#undef _FORMAT_IMPL_INTEGER 
 
-void _format_ftoa(stream_t* stream, float val) {
+FORMAT_IMPL(float)(stream_t* stream, const FORMAT_ARGS_TYPE(float)* args) {
 	// I tried to make an ftoa implementation myself but
 	// sometimes you gotta just swallow your pride and take the easy way out :(
+	float val = args->value;
+	uint precision = args->precision;
+
 	char buffer[64];
-	snprintf(buffer, sizeof(buffer), "%f", val);
+	if (precision == 0) {
+		snprintf(buffer, sizeof(buffer), "%f", val);
+	} else {
+		// Hacky way to format uint into chars without stream because
+		// I haven't implemented a raw memory stream.
+		if (precision > 99) { precision = 99; }
+		char cfmt[6] = "%.00f";
+		cfmt[2] = '0' + ((char)(fmod(floor(precision / 100.0), 10)));
+		cfmt[3] = '0' + ((char)(fmod(precision, 10)));
+		snprintf(buffer, sizeof(buffer), cfmt, val);
+	}
 	stream_write_cstr(stream, buffer);
 }
 
-void _format_dtoa(stream_t* stream, double val) {
-	char buffer[64];
-	snprintf(buffer, sizeof(buffer), "%lf", val);
-	stream_write_cstr(stream, buffer);
+FORMAT_IMPL(char)(stream_t* stream, const char* c) {
+	stream_write_char(stream, *c);
 }
 
-// Returns: length of spec
-// TODO: Specifier flags
-PRIVATE usize _format_process_spec(stream_t* stream, const char* spec, va_list* args) {
-    if (strncmp(spec, "%%", 2) == 0) {
-        stream_write_char(stream, '%');
-        return 2;
-    } else if (strncmp(spec, "%s", 2) == 0) {
-        const char* str = va_arg(*args, char*);
-        stream_write_cstr(stream, str);
-        return 2;
-    } else if (strncmp(spec, "%c", 2) == 0) {
-        stream_write_char(stream, (char)va_arg(*args, int));
-        return 2;
-    } else if (strncmp(spec, "%i", 2) == 0 || strncmp(spec, "%d", 2) == 0) {
-        _format_itoa(stream, va_arg(*args, int), 10, false);
-        return 2;
-    } else if (strncmp(spec, "%zu", 3) == 0) {
-        _format_zutoa(stream, va_arg(*args, int), 10, false);
-        return 3;
-    } else if (strncmp(spec, "%u", 2) == 0) {
-        _format_utoa(stream, va_arg(*args, uint), 10, false);
-        return 2;
-    } else if (strncmp(spec, "%x", 2) == 0) {
-        _format_utoa(stream, va_arg(*args, uint), 16, false);
-        return 2;
-    } else if (strncmp(spec, "%X", 2) == 0) {
-        _format_utoa(stream, va_arg(*args, uint), 16, true);
-        return 2;
-    } else if (strncmp(spec, "%o", 2) == 0) {
-        _format_utoa(stream, va_arg(*args, uint), 8, false);
-        return 2;
-	} else if (strncmp(spec, "%f", 2) == 0) {
-		_format_ftoa(stream, (float)va_arg(*args, double));
-		return 2;
-	} else if (strncmp(spec, "%lf", 2) == 0) {
-		_format_dtoa(stream, va_arg(*args, double));
-		return 3;
-    } else if (strncmp(spec, "%p", 2) == 0) {
-        stream_write_cstr(stream, "0x");
-        _format_zutoa(stream, (usize)va_arg(*args, void*), 16, false);
-        return 2;
-    }  else if (strncmp(spec, "%$", 2) == 0) {
-        formatter_t formatter = va_arg(*args, formatter_t);
-        formatter.func(stream, formatter.data);
-        return 2;
-    }
+FORMAT_IMPL(bool)(stream_t* stream, const bool* b) {
+	stream_write_cstr(stream, *b == true ? "true" : "false");
+}
 
-    stream_write_cstr(stream, spec);
-	return 2;
+FORMAT_IMPL(cstr)(stream_t* stream, const FORMAT_ARGS_TYPE(cstr)* args) {
+	stream_write(
+		stream,
+		args->value,
+		args->length == 0 ? strlen(args->value) : args->length
+	);
 }
 
 // TODO: Optimization: Reserve ~1.5x format_string length (when stream reserve functionality implemented)
@@ -126,21 +93,30 @@ void format_va_args(stream_t* stream, const char* format_string, va_list* args) 
 
     int i = 0;
     while (i < format_len) {
-        char c = format_string[i];
-        
-        // Collect specifier code into buffer
-        if (c == '%') {
-            char buf[4] = { 0 };
-            int j = 0;
-            for (; j < sizeof(buf) / sizeof(char) - 1; j++) {
-                buf[j] = format_string[i + j];
-            }
-            i += _format_process_spec(stream, buf, args);
-        } else {
-            stream_write_char(stream, c);
-            i++;
-        }
-    }
+		// Shouldn't need bounds checking due to NUL term
+		char c0 = format_string[i];
+        char c1 = format_string[i+1];
+
+		if (c0 == '{' && c1 == '{') {
+			stream_write_char(stream, '{');
+			i += 2;
+			continue;
+		} else if (c0 == '}' && c1 == '}') {
+			stream_write_char(stream, '}');
+			i += 2;
+			continue;
+		}
+
+		if (c0 == '{' && c1 == '}') {
+			formatter_t formatter = va_arg(*args, formatter_t);
+			formatter.func(stream, formatter.data);
+			i += 2;	
+			continue;
+		}
+
+		stream_write_char(stream, c0);
+		i++;
+	}
 }
 
 void format(stream_t* stream, const char* format_string, ...) {

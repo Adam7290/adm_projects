@@ -20,6 +20,7 @@ typedef i8 sbyte;
 typedef unsigned short ushort;
 typedef unsigned int uint;
 typedef unsigned long ulong;
+typedef char* cstr;
 
 #define NULLABLE
 #define NORETURN

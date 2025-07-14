@@ -26,7 +26,7 @@ void console_println(const char* cstr_or_format, ...) {
 
 // TODO: This should be moved to the future file util
 
-PRIVATE void _console_stream_write_bytes(stream_t* stream, void* bytes, usize length) {
+PRIVATE void _console_stream_write_bytes(stream_t* stream, const void* bytes, usize length) {
     fwrite(bytes, 1, length, stream_user_data(stream));
 }
 

@@ -6,7 +6,7 @@
 
 #include <string.h>
 
-void stream_write(stream_t* stream, void* bytes, usize length) {
+void stream_write(stream_t* stream, const void* bytes, usize length) {
     PANIC_ASSERT_DEBUG(stream->_vtable->write_bytes != NULL, "This stream does not have write capabilities.");
     stream->_vtable->write_bytes(stream, bytes, length);
 }

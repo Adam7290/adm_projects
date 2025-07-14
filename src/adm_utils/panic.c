@@ -29,7 +29,7 @@ NORETURN int _panic(const char* file_name, i32 line, NULLABLE const char* messag
     va_list args;
     va_start(args, message);
     stream_t stream = console_stderr_stream();
-    format(&stream, "Panicked at %s:%i: ", file_name, line);
+    format(&stream, "Panicked at {}:{}: ", FORMAT(cstr, file_name), FORMAT(int, line));
     format_va_args(&stream, message, &args);
     stream_write_char(&stream, '\n');
     va_end(args);

@@ -15,10 +15,10 @@ typedef struct stream_t {
 } stream_t;
 
 typedef struct stream_vtable_t {
-    void(*write_bytes)(stream_t* stream, void* bytes, usize length);
+    void(*write_bytes)(stream_t* stream, const void* bytes, usize length);
 } stream_vtable_t;
 
-void stream_write(stream_t* stream, void* bytes, usize length);
+void stream_write(stream_t* stream, const void* bytes, usize length);
 void stream_write_cstr(stream_t* stream, const char* cstr);
 void stream_write_char(stream_t* stream, char c);
 

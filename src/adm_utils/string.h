@@ -16,8 +16,6 @@ typedef struct string_t {
     _admstrvec_t _array;
 } string_t;
 
-FORMAT_DECL(string_t);
-
 // Creates a new string with no content
 string_t string_new_empty(arena_t* arena);
 // Creates a new string with a cstr (mem copies the bytes of cstr)
