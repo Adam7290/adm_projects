@@ -1,6 +1,7 @@
 #define VEC_IMPLEMENTATION
 #include "gpu.h"
 #include "app.h"
+#include "image.h"
 
 #include <adm_utils/panic.h>
 #include <adm_utils/string.h>
@@ -158,7 +159,7 @@ void gpu_shader_upload_source(gpu_shader_t* shader, const char* vertex_source, c
         glGetShaderInfoLog(vertex, length, &length, error);
         glDeleteShader(vertex);
 
-        PANIC("Vertex shader compilation failed:\n%s", error);
+        PANIC("Vertex shader compilation failed:\n{}", FORMAT(cstr, error));
     }
 
     u32 fragment = glCreateShader(GL_FRAGMENT_SHADER);
@@ -176,7 +177,7 @@ void gpu_shader_upload_source(gpu_shader_t* shader, const char* vertex_source, c
         glDeleteShader(vertex);
         glDeleteShader(fragment);
 
-        PANIC("Fragment shader compilation failed:\n%s", error);
+        PANIC("Fragment shader compilation failed:\n{}", FORMAT(cstr, error));
     }
 
     glAttachShader(shader->_handle, vertex);
@@ -194,7 +195,7 @@ void gpu_shader_upload_source(gpu_shader_t* shader, const char* vertex_source, c
         glGetProgramInfoLog(shader->_handle, length, &length, error);
         glDeleteProgram(shader->_handle);
 
-        PANIC("Shader program linking failed:\n%s", error);
+        PANIC("Shader program linking failed:\n{}", FORMAT(cstr, error));
     }
 
     glDetachShader(shader->_handle, vertex);
@@ -209,10 +210,56 @@ void gpu_shader_use(NULLABLE gpu_shader_t* shader) {
     }
 }
 
-void gpu_shader_set_f32(gpu_shader_t* shader, const char* name, f32 value) {
+void gpu_shader_set_float(gpu_shader_t* shader, const char* name, float value) {
     glProgramUniform1f(shader->_handle, glGetUniformLocation(shader->_handle, name), value);
+}
+
+
+void gpu_shader_set_int(gpu_shader_t* shader, const char* name, int value) {
+    glProgramUniform1i(shader->_handle, glGetUniformLocation(shader->_handle, name), value);
 }
 
 void gpu_shader_destroy(gpu_shader_t* shader) {
     arena_free(shader->_arena, shader);
+}
+
+PRIVATE void _gpu_texture_destroy_internal(gpu_texture_t* texture) {
+	glDeleteTextures(1, &texture->_handle);
+}
+
+gpu_texture_t* gpu_texture_create(app_t* app, arena_t* arena) {
+	gpu_texture_t* texture = arena_defer(arena, _gpu_texture_destroy_internal, gpu_texture_t);
+
+	texture->_app = app;
+	texture->_arena = arena;
+	glGenTextures(1, &texture->_handle);
+	return texture;
+}
+
+void gpu_texture_upload(gpu_texture_t* texture, const image_t* image) {
+	glBindTexture(GL_TEXTURE_2D, texture->_handle);
+
+	// TODO: User ability to set these parameters
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, image_width(image), image_height(image), 0, GL_RGBA, GL_UNSIGNED_BYTE, image_data(image));
+
+	glBindTexture(GL_TEXTURE_2D, 0);
+}
+
+void gpu_texture_use(NULLABLE gpu_texture_t* texture, uint channel) {
+	// TODO: Texture channel bounds checking
+	glActiveTexture(GL_TEXTURE0 + channel);
+	if (texture != NULL) {
+		glBindTexture(GL_TEXTURE_2D, texture->_handle);
+	} else {
+		glBindTexture(GL_TEXTURE_2D, 0);
+	}
+}
+
+void gpu_texture_destroy(gpu_texture_t* texture) {
+	arena_free(texture->_arena, texture);
 }

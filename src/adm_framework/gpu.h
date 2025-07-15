@@ -4,6 +4,7 @@
 
 typedef struct app_t app_t;
 typedef struct arena_t arena_t;
+typedef struct image_t image_t;
 
 typedef struct gpu_t {
 
@@ -41,20 +42,31 @@ typedef struct gpu_shader_t {
 } gpu_shader_t;
 
 typedef struct gpu_texture_t {
-	
+	uint _handle;
+	app_t* _app;
+	arena_t* _arena;
 } gpu_texture_t;
 
 void _gpu_init(app_t* app);
 void _gpu_frame(app_t* app);
 void gpu_clear(app_t* app, color_t color);
+
 gpu_vert_decl_t gpu_vert_decl_new(app_t* app, usize count, ...);
+
 gpu_verts_t* gpu_verts_create(app_t* app, arena_t* arena, gpu_vert_decl_t* vert_decl, bool has_indices);
 void gpu_verts_upload(gpu_verts_t* verts, const void* ptr, usize length);
 void gpu_verts_upload_indices(gpu_verts_t* verts, const gpu_index_t* ptr, usize length); 
 void gpu_verts_draw(gpu_verts_t* verts);
 void gpu_verts_destroy(gpu_verts_t* verts);
+
 gpu_shader_t* gpu_shader_create(app_t* app, arena_t* arena);
 void gpu_shader_upload_source(gpu_shader_t* shader, const char* vertex_source, const char* fragment_source);
 void gpu_shader_use(NULLABLE gpu_shader_t* shader);
-void gpu_shader_set_f32(gpu_shader_t* shader, const char* name, f32 value);
+void gpu_shader_set_float(gpu_shader_t* shader, const char* name, float value);
+void gpu_shader_set_int(gpu_shader_t* shader, const char* name, int value); 
 void gpu_shader_destroy(gpu_shader_t* shader);
+
+gpu_texture_t* gpu_texture_create(app_t* app, arena_t* arena);
+void gpu_texture_upload(gpu_texture_t* texture, const image_t* image);
+void gpu_texture_use(NULLABLE gpu_texture_t* texture, uint channel);
+void gpu_texture_destroy(gpu_texture_t* texture);

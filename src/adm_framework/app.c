@@ -22,6 +22,9 @@ app_t* app_new(arena_t* arena, const app_def_t* def) {
     
     glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, def->debug);
     glfwWindowHint(GLFW_VISIBLE, GLFW_FALSE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     app->_window = glfwCreateWindow(def->window_size.width, def->window_size.height, def->title, NULL, NULL);
     PANIC_ASSERT(app->_window != NULL, "Failed to create GLFW window.");
 
