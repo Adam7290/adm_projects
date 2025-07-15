@@ -47,6 +47,10 @@ void app_hide(app_t* app) {
     glfwHideWindow(app->_window);
 }
 
+void app_exit(app_t* app) {
+	glfwSetWindowShouldClose(app->_window, true);
+}
+
 bool app_frame(app_t* app) {
     if (glfwWindowShouldClose(app->_window) == GLFW_TRUE) {
         return false;

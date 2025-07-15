@@ -23,30 +23,34 @@ typedef struct gpu_vert_attr_t {
 #define VEC_TEMPLATE_PREFIX _gpu_vert_decl_
 #include <adm_utils/vec_impl.h>
 
+typedef ushort gpu_index_t;
+
 typedef struct _gpu_vert_decl_t gpu_vert_decl_t;
 typedef struct gpu_verts_t {
-    u32 _vbo, _vao;
+    uint _vbo, _vao, _ebo;
     usize _vertex_size, _buffer_length;
+	usize _index_buffer_length;
     app_t* _app;
     arena_t* _arena;
 } gpu_verts_t;
 
 typedef struct gpu_shader_t {
-    u32 _handle;
+    uint _handle;
     app_t* _app;
     arena_t* _arena;
 } gpu_shader_t;
 
 typedef struct gpu_texture_t {
-
+	
 } gpu_texture_t;
 
 void _gpu_init(app_t* app);
 void _gpu_frame(app_t* app);
 void gpu_clear(app_t* app, color_t color);
 gpu_vert_decl_t gpu_vert_decl_new(app_t* app, usize count, ...);
-gpu_verts_t* gpu_verts_create(app_t* app, arena_t* arena, gpu_vert_decl_t* vert_decl);
-void gpu_verts_upload(gpu_verts_t* verts, void* ptr, usize length);
+gpu_verts_t* gpu_verts_create(app_t* app, arena_t* arena, gpu_vert_decl_t* vert_decl, bool has_indices);
+void gpu_verts_upload(gpu_verts_t* verts, const void* ptr, usize length);
+void gpu_verts_upload_indices(gpu_verts_t* verts, const gpu_index_t* ptr, usize length); 
 void gpu_verts_draw(gpu_verts_t* verts);
 void gpu_verts_destroy(gpu_verts_t* verts);
 gpu_shader_t* gpu_shader_create(app_t* app, arena_t* arena);

@@ -30,6 +30,7 @@ typedef struct app_t {
 app_t* app_new(arena_t* arena, const app_def_t* def);
 void app_show(app_t* app);
 void app_hide(app_t* app);
+void app_exit(app_t* app);
 bool app_frame(app_t* app);
 u64 app_frame_count(app_t* app);
 u64 app_frames_per_second(app_t* app);

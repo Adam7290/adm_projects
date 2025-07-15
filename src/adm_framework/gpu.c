@@ -48,9 +48,10 @@ gpu_vert_decl_t gpu_vert_decl_new(app_t* app, usize count, ...) {
 PRIVATE void _gpu_verts_destroy_internal(gpu_verts_t* verts) {
     glDeleteVertexArrays(1, &verts->_vao);
     glDeleteBuffers(1, &verts->_vbo);
+	glDeleteBuffers(1, &verts->_ebo);
 }
 
-gpu_verts_t* gpu_verts_create(app_t* app, arena_t* arena, gpu_vert_decl_t* vert_decl) {
+gpu_verts_t* gpu_verts_create(app_t* app, arena_t* arena, gpu_vert_decl_t* vert_decl, bool has_indices) {
     gpu_verts_t* verts = arena_defer(arena, _gpu_verts_destroy_internal, gpu_verts_t);
     verts->_arena = arena;
     verts->_app = app;
@@ -58,6 +59,10 @@ gpu_verts_t* gpu_verts_create(app_t* app, arena_t* arena, gpu_vert_decl_t* vert_
 
     glGenVertexArrays(1, &verts->_vao);
     glGenBuffers(1, &verts->_vbo);
+
+	if (has_indices == true) {
+		glGenBuffers(1, &verts->_ebo);
+	}
 
     glBindVertexArray(verts->_vao);
     glBindBuffer(GL_ARRAY_BUFFER, verts->_vbo);
@@ -81,22 +86,41 @@ gpu_verts_t* gpu_verts_create(app_t* app, arena_t* arena, gpu_vert_decl_t* vert_
 
     glBindVertexArray(0);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
     return verts;
 }
 
-void gpu_verts_upload(gpu_verts_t* verts, void* ptr, usize length) {
+void gpu_verts_upload(gpu_verts_t* verts, const void* ptr, usize length) {
+	glBindVertexArray(verts->_vao);
     glBindBuffer(GL_ARRAY_BUFFER, verts->_vbo);
     glBufferData(GL_ARRAY_BUFFER, length, ptr, GL_STATIC_DRAW);
     glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
 
     verts->_buffer_length = length;
 }
 
+void gpu_verts_upload_indices(gpu_verts_t* verts, const gpu_index_t* ptr, usize length) {
+	glBindVertexArray(verts->_vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, verts->_ebo);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, length, ptr, GL_STATIC_DRAW);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	verts->_index_buffer_length = length;
+}
+
 void gpu_verts_draw(gpu_verts_t* verts) {
-    glBindVertexArray(verts->_vao);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
-    glBindVertexArray(0);
+	glBindVertexArray(verts->_vao);
+	if (verts->_ebo == 0) {
+		glDrawArrays(GL_TRIANGLES, 0, verts->_buffer_length / verts->_vertex_size);
+	} else {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, verts->_ebo);
+		glDrawElements(GL_TRIANGLES, verts->_index_buffer_length / sizeof(gpu_index_t), GL_UNSIGNED_SHORT, NULL);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+	glBindVertexArray(0);
 }
 
 void gpu_verts_destroy(gpu_verts_t* verts) {
