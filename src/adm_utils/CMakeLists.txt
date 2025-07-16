@@ -38,6 +38,7 @@ add_executable(${LIBRARY_NAME_TEST}
     tests/test_test.c
     tests/test_iter.c
     tests/test_map.c
+	tests/test_format.c
 )
 target_link_libraries(${LIBRARY_NAME_TEST} PRIVATE ${LIBRARY_NAME})
 
