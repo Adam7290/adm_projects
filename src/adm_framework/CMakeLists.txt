@@ -7,7 +7,7 @@ set(LIBRARY_NAME_SANDBOX adm_framework_sandbox)
 
 project(${LIBRARY_NAME} C)
 
-add_library(${LIBRARY_NAME} app.c input.c gpu.c time.c)
+add_library(${LIBRARY_NAME} app.c input.c gpu.c time.c image.c)
 target_include_directories(${LIBRARY_NAME} PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/..)
 
 # Add adm_utils
