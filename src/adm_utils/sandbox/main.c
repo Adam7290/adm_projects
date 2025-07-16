@@ -9,38 +9,27 @@
 
 int main() {
     arena_t arena = arena_new();
-    string_t string = string_new_empty(&arena);
-    stream_t stream = string_stream_new(&string);
+    string_t string = string_new(&arena, "Testing string_t");
 
-    format(
-        &stream,
-        "%%%%: %%\n"
-        "%%s: %s\n"
-        "%%c: %c\n"
-        "%%i: %i\n"
-        "%%u: %u\n"
-        "%%x: %x\n" 
-        "%%X: %X\n"
-        "%%o: %o\n"
-        "%%zu: %zu\n"
-        "%%p: %p\n"
-        "%%$: %$\n"
-        ,
-        "Hello, World!", 
-        'F',
-        (int)(123),
-        (uint)(UINT32_MAX),
-        0xffaa11,
-        0xAABBCC,
-        020,
-        SIZE_MAX,
-        (void*)0xFF666AA,
-        FORMAT(testing_t, &(testing_t){
-            .hiiiii = 12345,
-            .byeeee = 54321,
-        })
-    );
+	console_println(
+		"{{}}\n"
+		"char: {}\n"
+		"bool: {}\n"
+		"int: {}\n"
+		"uint: {}\n"
+		"float: {}\n"
+		"float (precision: 3): {}\n"
+		"cstr: {}\n",
 
-    arena_destroy(&arena);
+		FORMAT(char, 't'),
+		FORMAT(bool, true),
+		FORMAT(int, -123),
+		FORMAT(uint, -1),
+		FORMAT(float, 123.45678),
+		FORMAT(float, 123.45678, 3),
+		FORMAT(cstr, "Hello!!")
+	);
+	
+	arena_destroy(&arena);
     return 0;
 }

@@ -9,6 +9,7 @@ void test_list();
 void test_string();
 void test_iter();
 void test_map();
+void test_format();
 
 int main() {
     arena_t arena = arena_new();
@@ -21,7 +22,8 @@ int main() {
     test_list_add(&tests, test_string);
     test_list_add(&tests, test_iter);
     test_list_add(&tests, test_map);
-    
+    test_list_add(&tests, test_format);
+
     int exit_code = test_list_run(&tests);
     arena_destroy(&arena);
     return exit_code;
