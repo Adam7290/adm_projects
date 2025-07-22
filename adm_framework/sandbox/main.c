@@ -3,14 +3,10 @@
 #include <adm_framework/gpu.h>
 #include <adm_framework/time.h>
 #include <adm_framework/image.h>
+#include <adm_framework/dbgtext.h>
 
 #include <adm_utils/arena.h>
 #include <adm_utils/console.h>
-
-#include <adm_framework/external/glad/include/glad/glad.h>
-
-#include <stdio.h>
-#include <math.h>
 
 typedef struct vertex_t {
     float x, y;
@@ -91,8 +87,8 @@ int main() {
         // gpu_shader_set_int(shader, "texture0", 0); 
         // gpu_verts_draw(mesh);
 
-        console_println(
-			"Elapsed: {}, Delta: {}, FPS: {}", 
+       dbgtext_println(app,
+			"Elapsed: {}\nDelta: {}\nFPS: {}", 
 			FORMAT(float, time_app_elapsed(app).time), 
 			FORMAT(float, time_app_delta(app).time), 
 			FORMAT(int, app_frames_per_second(app))

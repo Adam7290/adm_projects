@@ -1,4 +1,13 @@
 workspace "adm_projects"
-	configurations { "Debug", "Release" }
-	targetdir "bin/%{cfg.buildcfg}"
-	include "src/adm_utils"
+	configurations { "debug", "release" }
+	objdir "build/%{cfg.buildcfg}/obj"
+	targetdir "build/%{cfg.buildcfg}/bin"
+
+	include "adm_utils"
+	include "adm_framework"
+
+	filter { "configurations:debug" }
+		symbols "On"
+	filter { "configurations:release" }
+		optimize "On"
+	filter { }
