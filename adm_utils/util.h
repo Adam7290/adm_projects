@@ -36,3 +36,5 @@ typedef char* cstr;
 #define CONCAT3_EXPAND(a, b, c) CONCAT3(a, b, c)
 #define CONCAT4(a, b, c, d) a##b##c##d
 #define CONCAT4_EXPAND(a, b, c, d) CONCAT4(a, b, c, d)
+#define STR(a) #a
+#define STRMACRO(macro) STR(macro)
