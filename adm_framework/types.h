@@ -1,5 +1,6 @@
 #pragma once
 
+#include "linmath.h"
 #include <adm_utils/util.h>
 
 typedef struct color_t {
@@ -8,3 +9,5 @@ typedef struct color_t {
 
 #define COLOR_BLACK ((color_t){ 0, 0, 0, 255 })
 #define COLOR_WHITE ((color_t){ 255, 255, 255, 255 })
+
+typedef vec4_t rect_t;
