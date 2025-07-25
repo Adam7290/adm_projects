@@ -1,0 +1,6 @@
+[submodule "adm_framework/external/glfw"]
+	path = adm_framework/external/glfw
+	url = https://github.com/glfw/glfw
+[submodule "adm_framework/external/linmath"]
+	path = adm_framework/external/linmath
+	url = https://github.com/datenwolf/linmath.h.git
