@@ -61,10 +61,10 @@ bool app_frame(app_t* app) {
         return false;
     }
 
-    _time_frame(app);
-    _input_frame(app);
-    _gpu_frame(app);
-	_dbgtext_frame(app);
+    _time_frame(app->_time);
+    _input_frame(app->_input);
+    _gpu_frame(app->_gpu);
+	_dbgtext_frame(app->_dbgtext);
 
     glfwSwapBuffers(app->_window);
     glfwPollEvents();
@@ -112,4 +112,8 @@ arena_t* app_arena(app_t* app) {
 
 void* app_window(app_t* app) {
     return app->_window;
+}
+
+gpu_t* app_gpu(app_t* app) {
+	return app->_gpu;
 }

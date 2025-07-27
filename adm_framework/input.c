@@ -544,28 +544,29 @@ void _input_glfw_mouse_button_callback(GLFWwindow* glfw_window, int glfw_button,
 void _input_init(app_t* app) {
     // adm_arena will guarentee allocated memory is zeroed out so our button buffers should all be INPUT_BUTTON_STATE_RELEASED aka 0
     app->_input = arena_alloc(app->_arena, input_t);
+	app->_input->app = app;
 
     glfwSetKeyCallback(app->_window, _input_glfw_key_callback);
     glfwSetMouseButtonCallback(app->_window, _input_glfw_mouse_button_callback);
 }
 
 // Expected to be called before glfwPollEvents
-void _input_frame(app_t* app) {
+void _input_frame(input_t* input) {
     // Update key_states
     for (input_button_state_t key = 0; key < _input_key_count; key++) {
-        if (app->_input->key_states[key] == INPUT_BUTTON_STATE_JUST_PRESSED) {
-            app->_input->key_states[key] = INPUT_BUTTON_STATE_PRESSED;
-        } else if (app->_input->key_states[key] == INPUT_BUTTON_STATE_JUST_RELEASED) {
-            app->_input->key_states[key] = INPUT_BUTTON_STATE_RELEASED;
+        if (input->key_states[key] == INPUT_BUTTON_STATE_JUST_PRESSED) {
+            input->key_states[key] = INPUT_BUTTON_STATE_PRESSED;
+        } else if (input->key_states[key] == INPUT_BUTTON_STATE_JUST_RELEASED) {
+            input->key_states[key] = INPUT_BUTTON_STATE_RELEASED;
         }
     }
 
     // Update mouse_button_states
     for (input_button_state_t mouse_button = 0; mouse_button < _input_mouse_button_count; mouse_button++) {
-        if (app->_input->mouse_button_states[mouse_button] == INPUT_BUTTON_STATE_JUST_PRESSED) {
-            app->_input->mouse_button_states[mouse_button] = INPUT_BUTTON_STATE_PRESSED;
-        } else if (app->_input->mouse_button_states[mouse_button] == INPUT_BUTTON_STATE_JUST_RELEASED) {
-            app->_input->mouse_button_states[mouse_button] = INPUT_BUTTON_STATE_RELEASED;
+        if (input->mouse_button_states[mouse_button] == INPUT_BUTTON_STATE_JUST_PRESSED) {
+            input->mouse_button_states[mouse_button] = INPUT_BUTTON_STATE_PRESSED;
+        } else if (input->mouse_button_states[mouse_button] == INPUT_BUTTON_STATE_JUST_RELEASED) {
+            input->mouse_button_states[mouse_button] = INPUT_BUTTON_STATE_RELEASED;
         }
     }
 }

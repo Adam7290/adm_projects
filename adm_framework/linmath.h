@@ -3,7 +3,7 @@
 
 #pragma once
 
-#include <linmath/linmath.h>
+#include "external/linmath/linmath.h"
 
 typedef vec2 vec2_t;
 typedef vec3 vec3_t;

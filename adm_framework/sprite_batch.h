@@ -2,11 +2,12 @@
 
 #include "types.h"
 
-typedef struct app_t app_t;
+typedef struct gpu_t gpu_t;
 typedef struct sprite_batch_t sprite_batch_t;
 typedef struct gpu_texture_t gpu_texture_t;
+typedef struct arena_t arena_t;
 
-sprite_batch_t* sprite_batch_new(app_t* app);
+sprite_batch_t* sprite_batch_new(gpu_t* gpu, arena_t* arena);
 void sprite_batch_start(sprite_batch_t* sprite_batch);
 void sprite_batch_end(sprite_batch_t* sprite_batch);
 void sprite_batch_flush(sprite_batch_t* sprite_batch);

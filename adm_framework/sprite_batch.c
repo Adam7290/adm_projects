@@ -1,8 +1,8 @@
 #include "sprite_batch.h"
 
 #include "gpu.h"
-#include "app.h"
 #include "image.h"
+#include "app.h"
 
 #include <adm_utils/arena.h>
 #include <adm_utils/util.h>
@@ -68,7 +68,9 @@ typedef struct _sprite_batch_item_t {
 #include <adm_utils/vec_impl.h>
 
 typedef struct sprite_batch_t {
-	app_t* _app;
+	gpu_t* _gpu;
+	arena_t* _arena;
+
 	bool _started;
 	_vec_sprite_batch_item_t _items;
 	gpu_shader_t* _shader;
@@ -86,22 +88,24 @@ typedef struct sprite_batch_t {
 PRIVATE void _sprite_batch_destroy_internal(sprite_batch_t* sprite_batch) {
 }
 
-sprite_batch_t* sprite_batch_new(app_t* app) {
-	sprite_batch_t* sprite_batch = arena_defer(app->_arena, _sprite_batch_destroy_internal, sprite_batch_t); 
+sprite_batch_t* sprite_batch_new(gpu_t* gpu, arena_t* arena) {
+	sprite_batch_t* sprite_batch = arena_defer(arena, _sprite_batch_destroy_internal, sprite_batch_t); 
 
-	sprite_batch->_app = app;
+	sprite_batch->_gpu = gpu;
+	sprite_batch->_arena = arena;
+
 	sprite_batch->_started = false;
 
 	// Items vector
-	sprite_batch->_items = _vec_sprite_batch_item_new(app->_arena);	
+	sprite_batch->_items = _vec_sprite_batch_item_new(arena);	
 	_vec_sprite_batch_item_reserve(&sprite_batch->_items, _sprite_batch_max_size);
 
 	// Shader
-	sprite_batch->_shader = gpu_shader_create(app, app->_arena);
+	sprite_batch->_shader = gpu_shader_create(gpu, arena);
 	gpu_shader_upload_source(sprite_batch->_shader, _sprite_batch_vert_shader, _sprite_batch_frag_shader);
 
 	// Buffer
-	sprite_batch->_buffer = gpu_uniform_buffer_create(app, app->_arena);
+	sprite_batch->_buffer = gpu_uniform_buffer_create(gpu, arena);
 	gpu_uniform_buffer_upload(sprite_batch->_buffer, _sprite_batch_max_size * sizeof(_sprite_batch_item_t), NULL);
 	gpu_shader_bind_uniform_buffer(sprite_batch->_shader, "sprite_batch_b", sprite_batch->_buffer);
 
@@ -123,18 +127,18 @@ sprite_batch_t* sprite_batch_new(app_t* app) {
 		1, 2, 3,
 	};
 
-	gpu_vert_decl_t vert_decl = gpu_vert_decl_new(app->_arena, 2,
+	gpu_vert_decl_t vert_decl = gpu_vert_decl_new(arena, 2,
 		(gpu_vert_attr_t){ 2, GPU_VERT_ATTR_TYPE_FLOAT, },
 		(gpu_vert_attr_t){ 2, GPU_VERT_ATTR_TYPE_FLOAT, }
 	);
 
-	sprite_batch->_verts = gpu_verts_create(app, app->_arena, &vert_decl, true); 
+	sprite_batch->_verts = gpu_verts_create(gpu, arena, &vert_decl, true); 
 	gpu_verts_upload(sprite_batch->_verts, verts, sizeof(verts));
 	gpu_verts_upload_indices(sprite_batch->_verts, indices, sizeof(indices));
 	gpu_vert_decl_free(&vert_decl);
 
 	// Blank texture
-	sprite_batch->_texture_blank = gpu_texture_create(app, app->_arena);
+	sprite_batch->_texture_blank = gpu_texture_create(gpu, arena);
 	const u64 pix = 0xFFFFFFFF;
 	gpu_texture_upload_raw(sprite_batch->_texture_blank, (byte*)(&pix), 1, 1, IMAGE_FORMAT_RGBA);
 
@@ -183,7 +187,8 @@ void sprite_batch_flush(sprite_batch_t* sprite_batch) {
 		_vec_sprite_batch_item_ptr(&sprite_batch->_items)
 	);
 
-	app_window_size_t wind_size = app_window_size(sprite_batch->_app);
+	app_t* app = gpu_app(sprite_batch->_gpu);
+	app_window_size_t wind_size = app_window_size(app);
 	mat4x4_t proj; mat4x4_ortho(proj, 0, wind_size.width, 0, wind_size.height, -1.f, 1.f); 
 	gpu_shader_set_mat4x4(sprite_batch->_shader, "u_proj", proj);
 

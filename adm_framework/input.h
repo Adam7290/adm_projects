@@ -142,7 +142,9 @@ typedef enum input_button_state_t {
     INPUT_BUTTON_STATE_JUST_RELEASED,
 } input_button_state_t;
 
+typedef struct app_t app_t;
 typedef struct input_t {
+	app_t* app;
     u8 key_states[_input_key_count];
     u8 mouse_button_states[_input_mouse_button_count];
 } input_t;
@@ -150,7 +152,7 @@ typedef struct input_t {
 typedef struct app_t app_t;
 
 void _input_init(app_t* app);
-void _input_frame(app_t* app);
+void _input_frame(input_t* input);
 input_button_state_t input_key_state(app_t* app, input_key_t key);
 bool input_key_down(app_t* app, input_key_t key);
 bool input_key_up(app_t* app, input_key_t key);

@@ -96,15 +96,17 @@ PRIVATE const char* _dbgtext_frag_shader =
 "#version 460 core\n"
 "in vec2 vert_uv;"
 "out vec4 out_color;\n"
-"uniform sampler2D u_texture;"
+"uniform sampler2D u_texture;\n"
 "void main() {\n"
 "	float a = texture(u_texture, vert_uv).x;\n"
 "	if (a < 0.5f) { discard; }\n"
-"	out_color = vec4(1.0, 1.0, 1.0, 1.0);"
+"	out_color = vec4(1.0, 1.0, 1.0, 1.0);\n"
 "}\n"
 ;
 
 typedef struct dbgtext_t {
+	app_t* app;
+	gpu_t* gpu;
 	gpu_texture_t* atlas;
 	gpu_shader_t* shader;
 	gpu_verts_t* verts;
@@ -114,9 +116,11 @@ typedef struct dbgtext_t {
 void _dbgtext_init(app_t* app) {
 	dbgtext_t* dbgtext = arena_alloc(app->_arena, dbgtext_t);
 	app->_dbgtext = dbgtext;
+	dbgtext->app = app;
+	dbgtext->gpu = app_gpu(app);
 	
 	// TEXTURE
-	app->_dbgtext->atlas = gpu_texture_create(app, app->_arena);
+	app->_dbgtext->atlas = gpu_texture_create(dbgtext->gpu, app->_arena);
 	gpu_texture_upload_raw(dbgtext->atlas, _dbgtext_atlas_data, _dbgtext_atlas_width, _dbgtext_atlas_height, IMAGE_FORMAT_RED);
 	gpu_texture_set_filter(dbgtext->atlas, GPU_TEXTURE_FILTER_NEAREST);
 
@@ -143,13 +147,13 @@ void _dbgtext_init(app_t* app) {
 		(gpu_vert_attr_t){ 2, GPU_VERT_ATTR_TYPE_FLOAT, }
 	);
 
-	dbgtext->verts = gpu_verts_create(app, app->_arena, &vert_decl, true);
+	dbgtext->verts = gpu_verts_create(dbgtext->gpu, app->_arena, &vert_decl, true);
 	gpu_verts_upload(dbgtext->verts, verts, sizeof(verts));
 	gpu_verts_upload_indices(dbgtext->verts, indices, sizeof(indices)); 
 	gpu_vert_decl_free(&vert_decl);
 
 	// SHADER
-	dbgtext->shader = gpu_shader_create(app, app->_arena);
+	dbgtext->shader = gpu_shader_create(dbgtext->gpu, app->_arena);
 	gpu_shader_upload_source(dbgtext->shader, _dbgtext_vert_shader, _dbgtext_frag_shader);
 	gpu_shader_set_vec2f(dbgtext->shader, "u_glyph_size", (int)_dbgtext_glyph_width, (int)_dbgtext_glyph_height);	
 	gpu_shader_set_vec2f(dbgtext->shader, "u_atlas_size", (int)_dbgtext_atlas_width, (int)_dbgtext_atlas_height);
@@ -172,6 +176,7 @@ PRIVATE void _dbgtext_draw_text(app_t* app, const char* text, usize text_len) {
 		if (c == '\n') {
 			x = 0;
 			y--;
+			continue;
 		}
 
 		char gc = c - _dbgtext_atlas_start;
@@ -186,8 +191,9 @@ PRIVATE void _dbgtext_draw_text(app_t* app, const char* text, usize text_len) {
 	}
 }
 
-void _dbgtext_frame(app_t* app) {
-	dbgtext_t* dbgtext = app->_dbgtext;
+void _dbgtext_frame(dbgtext_t* dbgtext) {
+	app_t* app = dbgtext->app;
+
 	gpu_shader_use(dbgtext->shader);
 	gpu_texture_use(dbgtext->atlas, 0);
 

@@ -19,6 +19,7 @@ typedef struct _time_t _time_t;
 typedef struct dbgtext_t dbgtext_t;
 typedef struct app_t {
     arena_t* _arena;
+
     // User pointer points to this app
     void* _window;
     input_t* _input;
@@ -43,3 +44,4 @@ const char* app_title(app_t* app);
 void app_set_title(app_t* app, const char* title);
 arena_t* app_arena(app_t* app);
 void* app_window(app_t* app);
+gpu_t* app_gpu(app_t* app);

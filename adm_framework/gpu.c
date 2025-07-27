@@ -10,17 +10,30 @@
 #include <GLFW/glfw3.h>
 #include <stdarg.h>
 
+typedef struct gpu_t {
+	app_t* app;
+} gpu_t;
+
 void _gpu_init(app_t* app) {
+	gpu_t* gpu = arena_alloc(app->_arena, gpu_t);
+	app->_gpu = gpu;
+	gpu->app = app;
+
     PANIC_ASSERT(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 1, "Failed to load GLAD.");
 }
 
-void _gpu_frame(app_t* app) {
+void _gpu_frame(gpu_t* gpu) {
+	app_t* app = gpu_app(gpu);
     app_window_size_t framebuffer_size = app_framebuffer_size(app);
     glViewport(0, 0, framebuffer_size.width, framebuffer_size.height);
     glUseProgram(0);
 }
 
-void gpu_clear(app_t* app, color_t color) {
+app_t* gpu_app(gpu_t* gpu) {
+	return gpu->app;
+}
+
+void gpu_clear(gpu_t* gpu, color_t color) {
     glClearColor(
         color.red / 255.0f, 
         color.green / 255.0f, 
@@ -52,10 +65,10 @@ PRIVATE void _gpu_verts_destroy_internal(gpu_verts_t* verts) {
 	glDeleteBuffers(1, &verts->_ebo);
 }
 
-gpu_verts_t* gpu_verts_create(app_t* app, arena_t* arena, gpu_vert_decl_t* vert_decl, bool has_indices) {
+gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, gpu_vert_decl_t* vert_decl, bool has_indices) {
     gpu_verts_t* verts = arena_defer(arena, _gpu_verts_destroy_internal, gpu_verts_t);
     verts->_arena = arena;
-    verts->_app = app;
+	verts->_gpu = gpu;
     verts->_buffer_length = 0;
 
     glGenVertexArrays(1, &verts->_vao);
@@ -124,6 +137,18 @@ void gpu_verts_draw(gpu_verts_t* verts) {
 	glBindVertexArray(0);
 }
 
+void gpu_verts_draw_instanced(gpu_verts_t* verts, usize count) {
+	glBindVertexArray(verts->_vao);
+	if (verts->_ebo == 0) {
+		glDrawArraysInstanced(GL_TRIANGLES, 0, verts->_buffer_length / verts->_vertex_size, count);
+	} else {
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, verts->_ebo);
+		glDrawElementsInstanced(GL_TRIANGLES, verts->_index_buffer_length / sizeof(gpu_index_t), GL_UNSIGNED_SHORT, NULL, count);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+	glBindVertexArray(0);
+}
+
 void gpu_verts_destroy(gpu_verts_t* verts) {
     arena_free(verts->_arena, verts);
 }
@@ -132,10 +157,10 @@ PRIVATE void _gpu_shader_destroy_internal(gpu_shader_t* shader) {
     glDeleteProgram(shader->_handle);
 }
 
-gpu_shader_t* gpu_shader_create(app_t* app, arena_t* arena) {
+gpu_shader_t* gpu_shader_create(gpu_t* gpu, arena_t* arena) {
     gpu_shader_t* shader = arena_defer(arena, _gpu_shader_destroy_internal, gpu_shader_t);
     
-    shader->_app = app;
+	shader->_gpu = gpu;
     shader->_arena = arena;
     shader->_handle = glCreateProgram();
 
@@ -228,6 +253,19 @@ void gpu_shader_set_vec2f(gpu_shader_t* shader, const char* name, float x, float
 	glProgramUniform2f(shader->_handle, glGetUniformLocation(shader->_handle, name), x, y);
 }
 
+
+void gpu_shader_set_vec3f(gpu_shader_t* shader, const char* name, float x, float y, float z) {
+	glProgramUniform3f(shader->_handle, glGetUniformLocation(shader->_handle, name), x, y, z);
+}
+
+void gpu_shader_set_mat4x4(gpu_shader_t* shader, const char* name, const mat4x4_t mat) {
+	glProgramUniformMatrix4fv(shader->_handle, glGetUniformLocation(shader->_handle, name), 1, GL_FALSE, (float*)mat);
+}
+
+void gpu_shader_bind_uniform_buffer(gpu_shader_t* shader, const char* name, gpu_uniform_buffer_t* buffer) {
+	glUniformBlockBinding(shader->_handle, glGetUniformBlockIndex(shader->_handle, name), buffer->_binding_point); 
+}
+
 void gpu_shader_destroy(gpu_shader_t* shader) {
     arena_free(shader->_arena, shader);
 }
@@ -236,10 +274,10 @@ PRIVATE void _gpu_texture_destroy_internal(gpu_texture_t* texture) {
 	glDeleteTextures(1, &texture->_handle);
 }
 
-gpu_texture_t* gpu_texture_create(app_t* app, arena_t* arena) {
+gpu_texture_t* gpu_texture_create(gpu_t* gpu, arena_t* arena) {
 	gpu_texture_t* texture = arena_defer(arena, _gpu_texture_destroy_internal, gpu_texture_t);
 
-	texture->_app = app;
+	texture->_gpu = gpu;
 	texture->_arena = arena;
 	glGenTextures(1, &texture->_handle);
 	return texture;
@@ -310,4 +348,41 @@ void gpu_texture_use(NULLABLE gpu_texture_t* texture, uint channel) {
 
 void gpu_texture_destroy(gpu_texture_t* texture) {
 	arena_free(texture->_arena, texture);
+}
+
+PRIVATE void _gpu_uniform_buffer_destroy_internal(gpu_uniform_buffer_t* buffer) {
+	glDeleteBuffers(1, &buffer->_handle);
+}
+
+gpu_uniform_buffer_t* gpu_uniform_buffer_create(gpu_t* gpu, arena_t* arena) {
+	gpu_uniform_buffer_t* buffer = arena_defer(arena, _gpu_uniform_buffer_destroy_internal, gpu_uniform_buffer_t);
+
+	buffer->_arena = arena;
+	buffer->_gpu = gpu;
+	
+	glCreateBuffers(1, &buffer->_handle);
+	
+
+	return buffer;
+}
+
+void gpu_uniform_buffer_upload(gpu_uniform_buffer_t* buffer, usize length, NULLABLE const void* data) {
+	glBindBuffer(GL_UNIFORM_BUFFER, buffer->_handle);
+	glBufferData(GL_UNIFORM_BUFFER, length, data, GL_STREAM_DRAW);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+
+	static usize s_binding = 0;
+	glBindBufferRange(GL_UNIFORM_BUFFER, s_binding, buffer->_handle, 0, length);
+	buffer->_binding_point = s_binding;
+	s_binding++;
+}
+
+void gpu_uniform_buffer_upload_sub(gpu_uniform_buffer_t* buffer, usize offset, usize length, const void* data) {
+	glBindBuffer(GL_UNIFORM_BUFFER, buffer->_handle);
+	glBufferSubData(GL_UNIFORM_BUFFER, offset, length, data);
+	glBindBuffer(GL_UNIFORM_BUFFER, 0);
+}
+
+void gpu_uniform_buffer_destroy(gpu_uniform_buffer_t* buffer) {
+	arena_free(buffer->_arena, buffer);
 }
