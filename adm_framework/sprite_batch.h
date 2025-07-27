@@ -19,3 +19,4 @@ void sprite_batch_color(sprite_batch_t* sprite_batch, NULLABLE const vec4_t* col
 void sprite_batch_texture(sprite_batch_t* sprite_batch, NULLABLE gpu_texture_t* texture);
 void sprite_batch_reset_params(sprite_batch_t* sprite_batch);
 void sprite_batch_destroy(sprite_batch_t* sprite_batch);
+gpu_t* sprite_batch_gpu(const sprite_batch_t* sprite_batch);

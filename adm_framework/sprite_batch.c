@@ -254,3 +254,7 @@ void sprite_batch_destroy(sprite_batch_t* sprite_batch) {
 	// TODO: Implement
 	UNIMPLEMENTED_FUNCTION();
 }
+
+gpu_t* sprite_batch_gpu(const sprite_batch_t* sprite_batch) {
+	return sprite_batch->_gpu;
+}
