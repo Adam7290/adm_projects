@@ -5,6 +5,7 @@
 typedef struct gpu_t gpu_t;
 typedef struct sprite_batch_t sprite_batch_t;
 typedef struct gpu_texture_t gpu_texture_t;
+typedef struct gpu_shader_t gpu_shader_t;
 typedef struct arena_t arena_t;
 
 sprite_batch_t* sprite_batch_new(gpu_t* gpu, arena_t* arena);
@@ -17,6 +18,8 @@ void sprite_batch_rect(sprite_batch_t* sprite_batch, NULLABLE const vec4_t* rect
 void sprite_batch_src_rect(sprite_batch_t* sprite_batch, NULLABLE const vec4_t* src_rect);
 void sprite_batch_color(sprite_batch_t* sprite_batch, NULLABLE const vec4_t* color);
 void sprite_batch_texture(sprite_batch_t* sprite_batch, NULLABLE gpu_texture_t* texture);
+void sprite_batch_effect(sprite_batch_t* sprite_batch, NULLABLE gpu_shader_t* effect);
 void sprite_batch_reset_params(sprite_batch_t* sprite_batch);
+gpu_shader_t* sprite_batch_effect_create(sprite_batch_t* sprite_batch, arena_t* arena, const char* frag_source);
 void sprite_batch_destroy(sprite_batch_t* sprite_batch);
 gpu_t* sprite_batch_gpu(const sprite_batch_t* sprite_batch);

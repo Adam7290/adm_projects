@@ -73,7 +73,7 @@ typedef struct sprite_batch_t {
 
 	bool _started;
 	_vec_sprite_batch_item_t _items;
-	gpu_shader_t* _shader;
+	gpu_shader_t* _default_effect;
 	gpu_uniform_buffer_t* _buffer;
 	gpu_verts_t* _verts;
 
@@ -83,6 +83,7 @@ typedef struct sprite_batch_t {
 	vec4_t _param_src_rect;
 	vec4_t _param_color;
 	gpu_texture_t* _param_texture;
+	gpu_shader_t* _param_effect;
 } sprite_batch_t;
 
 PRIVATE void _sprite_batch_destroy_internal(sprite_batch_t* sprite_batch) {
@@ -100,14 +101,12 @@ sprite_batch_t* sprite_batch_new(gpu_t* gpu, arena_t* arena) {
 	sprite_batch->_items = _vec_sprite_batch_item_new(arena);	
 	_vec_sprite_batch_item_reserve(&sprite_batch->_items, _sprite_batch_max_size);
 
-	// Shader
-	sprite_batch->_shader = gpu_shader_create(gpu, arena);
-	gpu_shader_upload_source(sprite_batch->_shader, _sprite_batch_vert_shader, _sprite_batch_frag_shader);
-
 	// Buffer
 	sprite_batch->_buffer = gpu_uniform_buffer_create(gpu, arena);
 	gpu_uniform_buffer_upload(sprite_batch->_buffer, _sprite_batch_max_size * sizeof(_sprite_batch_item_t), NULL);
-	gpu_shader_bind_uniform_buffer(sprite_batch->_shader, "sprite_batch_b", sprite_batch->_buffer);
+
+	// Shader
+	sprite_batch->_default_effect = sprite_batch_effect_create(sprite_batch, arena, _sprite_batch_frag_shader);
 
 	// Verts
 	typedef struct vertex_t {
@@ -180,6 +179,9 @@ void sprite_batch_flush(sprite_batch_t* sprite_batch) {
 
 	console_println("Flushing {} sprites in batch...", FORMAT(int, item_count));
 
+	gpu_shader_use(sprite_batch->_param_effect);
+	gpu_shader_set_int(sprite_batch->_param_effect, "u_texture", 0);
+
 	gpu_uniform_buffer_upload_sub(
 		sprite_batch->_buffer,
 		0,
@@ -190,12 +192,11 @@ void sprite_batch_flush(sprite_batch_t* sprite_batch) {
 	app_t* app = gpu_app(sprite_batch->_gpu);
 	app_window_size_t wind_size = app_window_size(app);
 	mat4x4_t proj; mat4x4_ortho(proj, 0, wind_size.width, 0, wind_size.height, -1.f, 1.f); 
-	gpu_shader_set_mat4x4(sprite_batch->_shader, "u_proj", proj);
+	gpu_shader_set_mat4x4(sprite_batch->_param_effect, "u_proj", proj);
 
 	mat4x4_t view; mat4x4_identity(view);
-	gpu_shader_set_mat4x4(sprite_batch->_shader, "u_view", view);
+	gpu_shader_set_mat4x4(sprite_batch->_param_effect, "u_view", view);
 	
-	gpu_shader_use(sprite_batch->_shader);
 	gpu_texture_use(sprite_batch->_param_texture, 0);
 	gpu_verts_draw_instanced(sprite_batch->_verts, item_count);
 
@@ -243,11 +244,33 @@ void sprite_batch_texture(sprite_batch_t* sprite_batch, NULLABLE gpu_texture_t* 
 	}
 }
 
+void sprite_batch_effect(sprite_batch_t* sprite_batch, NULLABLE gpu_shader_t* effect) {
+	// Don't flush if we don't actually need to
+	if (effect == sprite_batch->_param_effect) {
+		return;
+	}
+
+	sprite_batch_flush(sprite_batch);
+	if (effect != NULL) {
+		sprite_batch->_param_effect = effect;
+	} else {
+		sprite_batch->_param_effect = sprite_batch->_default_effect;
+	}
+}
+
 void sprite_batch_reset_params(sprite_batch_t* sprite_batch) {
 	sprite_batch_rect(sprite_batch, NULL);
 	sprite_batch_src_rect(sprite_batch, NULL);
 	sprite_batch_color(sprite_batch, NULL);
 	sprite_batch_texture(sprite_batch, NULL);
+	sprite_batch_effect(sprite_batch, NULL);
+}
+
+gpu_shader_t* sprite_batch_effect_create(sprite_batch_t* sprite_batch, arena_t* arena, const char* frag_source) {
+	gpu_shader_t* effect = gpu_shader_create(sprite_batch->_gpu, arena);
+	gpu_shader_upload_source(effect, _sprite_batch_vert_shader, frag_source);
+	gpu_shader_bind_uniform_buffer(effect, "sprite_batch_b", sprite_batch->_buffer);
+	return effect;
 }
 
 void sprite_batch_destroy(sprite_batch_t* sprite_batch) {
