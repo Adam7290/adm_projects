@@ -107,6 +107,7 @@ sprite_batch_t* sprite_batch_new(gpu_t* gpu, arena_t* arena) {
 
 	// Shader
 	sprite_batch->_default_effect = sprite_batch_effect_create(sprite_batch, arena, _sprite_batch_frag_shader);
+	sprite_batch->_param_effect = sprite_batch->_default_effect;
 
 	// Verts
 	typedef struct vertex_t {
