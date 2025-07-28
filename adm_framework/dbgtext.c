@@ -1,6 +1,7 @@
 #include "image.h"
 #include "app.h"
 #include "gpu.h"
+#include "sprite_batch.h"
 
 #include <adm_utils/util.h>
 #include <adm_utils/arena.h>
@@ -67,39 +68,19 @@ PRIVATE const byte _dbgtext_atlas_data[]  = {
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0xff, 0xff, 0x00
 };
 
-PRIVATE const char* _dbgtext_vert_shader = 
-"#version 460 core\n"
-"layout (location = 0) in vec2 in_pos;\n"
-"layout (location = 1) in vec2 in_uv;\n"
-"out vec2 vert_uv;\n"
-"uniform vec2 u_window_size;\n"
-"uniform vec2 u_pos;\n"
-"uniform vec2 u_atlas_size;\n"
-"uniform vec2 u_glyph_size;\n"
-"uniform vec2 u_glyph_pos;\n"
-"uniform float u_font_size;\n"
-"void main() {\n"
-"	vec2 uv = vec2(in_uv.x, 1.0 - in_uv.y);\n"
-"	vert_uv = ((u_glyph_pos + uv) * u_glyph_size) / u_atlas_size;\n"
-"	vert_uv = vec2(vert_uv.x, 1.0 - vert_uv.y);\n"
-//"	vert_uv = in_uv;\n"
-"	vec2 real_glyph_size = u_glyph_size * u_font_size;\n"
-"	vec2 vert_pos = u_pos + in_pos;\n"
-"	vert_pos = vert_pos + vec2(0.5, -0.5);\n"
-"	vert_pos = (vert_pos * real_glyph_size) / u_window_size;\n"
-"	vert_pos = (vert_pos * 2) + vec2(-1.0, 1.0);\n"
-"	gl_Position = vec4(vert_pos.xy, 0.0, 1.0);\n"
-"}\n"
-;
-
 PRIVATE const char* _dbgtext_frag_shader = 
 "#version 460 core\n"
-"in vec2 vert_uv;"
+
+"in vec2 vert_uv;\n"
+"in vec4 vert_color;\n"
 "out vec4 out_color;\n"
 "uniform sampler2D u_texture;\n"
+
 "void main() {\n"
-"	float a = texture(u_texture, vert_uv).x;\n"
-"	if (a < 0.5f) { discard; }\n"
+"	bool is_pixel = texture(u_texture, vert_uv).x > 0.5;\n"
+"	if (is_pixel == false) {\n"
+"		discard;\n"
+"	}\n"
 "	out_color = vec4(1.0, 1.0, 1.0, 1.0);\n"
 "}\n"
 ;
@@ -107,69 +88,47 @@ PRIVATE const char* _dbgtext_frag_shader =
 typedef struct dbgtext_t {
 	app_t* app;
 	gpu_t* gpu;
+	sprite_batch_t* sprite_batch;
+	arena_t* arena;
+
 	gpu_texture_t* atlas;
-	gpu_shader_t* shader;
-	gpu_verts_t* verts;
+	gpu_shader_t* effect;
 	string_t buffer;
 } dbgtext_t;
 
-void _dbgtext_init(app_t* app) {
-	dbgtext_t* dbgtext = arena_alloc(app->_arena, dbgtext_t);
-	app->_dbgtext = dbgtext;
-	dbgtext->app = app;
-	dbgtext->gpu = app_gpu(app);
+dbgtext_t* dbgtext_new(sprite_batch_t* sprite_batch, arena_t* arena) {
+	dbgtext_t* dbgtext = arena_alloc(arena, dbgtext_t);
+	dbgtext->arena = arena;
+	dbgtext->sprite_batch = sprite_batch;
+	dbgtext->gpu = sprite_batch_gpu(sprite_batch);
+	dbgtext->app = gpu_app(dbgtext->gpu);
 	
 	// TEXTURE
-	app->_dbgtext->atlas = gpu_texture_create(dbgtext->gpu, app->_arena);
+	dbgtext->atlas = gpu_texture_create(dbgtext->gpu, arena);
 	gpu_texture_upload_raw(dbgtext->atlas, _dbgtext_atlas_data, _dbgtext_atlas_width, _dbgtext_atlas_height, IMAGE_FORMAT_RED);
 	gpu_texture_set_filter(dbgtext->atlas, GPU_TEXTURE_FILTER_NEAREST);
 
-	// VERTS
-	typedef struct vertex_t {
-		float x, y; 
-		float u, v;
-	} vertex_t;
-	
-	const vertex_t verts[] = {
-		(vertex_t){  0.5f,  0.5f,  1.0f, 1.0f, }, // Top-right
-		(vertex_t){  0.5f, -0.5f,  1.0f, 0.0f, }, // Bottom-right
-		(vertex_t){ -0.5f, -0.5f,  0.0f, 0.0f, }, // Bottom-left
-	    (vertex_t){ -0.5f,  0.5f,  0.0f, 1.0f, }, // Top-left
-	};
+	// SPRITE BATCH EFFECT
+	dbgtext->effect = sprite_batch_effect_create(sprite_batch, arena, _dbgtext_frag_shader);
 
-	const gpu_index_t indices[] = {
-		0, 1, 3,
-		1, 2, 3,
-	};
-
-	gpu_vert_decl_t vert_decl = gpu_vert_decl_new(app->_arena, 2,
-		(gpu_vert_attr_t){ 2, GPU_VERT_ATTR_TYPE_FLOAT, },
-		(gpu_vert_attr_t){ 2, GPU_VERT_ATTR_TYPE_FLOAT, }
-	);
-
-	dbgtext->verts = gpu_verts_create(dbgtext->gpu, app->_arena, &vert_decl, true);
-	gpu_verts_upload(dbgtext->verts, verts, sizeof(verts));
-	gpu_verts_upload_indices(dbgtext->verts, indices, sizeof(indices)); 
-	gpu_vert_decl_free(&vert_decl);
-
-	// SHADER
-	dbgtext->shader = gpu_shader_create(dbgtext->gpu, app->_arena);
-	gpu_shader_upload_source(dbgtext->shader, _dbgtext_vert_shader, _dbgtext_frag_shader);
-	gpu_shader_set_vec2f(dbgtext->shader, "u_glyph_size", (int)_dbgtext_glyph_width, (int)_dbgtext_glyph_height);	
-	gpu_shader_set_vec2f(dbgtext->shader, "u_atlas_size", (int)_dbgtext_atlas_width, (int)_dbgtext_atlas_height);
-	gpu_shader_set_float(dbgtext->shader, "u_font_size", 2.0f);
-	
 	// STRING BUFFER
-	dbgtext->buffer = string_new_empty(app->_arena);
+	dbgtext->buffer = string_new_empty(arena);
+
+	return dbgtext;
 }
 
-PRIVATE void _dbgtext_draw_text(app_t* app, const char* text, usize text_len) {
+PRIVATE void _dbgtext_draw_text(dbgtext_t* dbgtext, const char* text, usize text_len) {
+	sprite_batch_t* sprite_batch = dbgtext->sprite_batch;
+
+	sprite_batch_start(sprite_batch);
+	sprite_batch_texture(sprite_batch, dbgtext->atlas);
+	sprite_batch_effect(sprite_batch, dbgtext->effect);
+	sprite_batch_color(sprite_batch, &(vec4_t){ 1.0, 1.0, 1.0, 1.0 });
+
+	app_window_size_t wind_size = app_window_size(dbgtext->app);
+
 	int x = 0;
 	int y = 0;
-
-	dbgtext_t* dbgtext = app->_dbgtext;
-	gpu_texture_use(dbgtext->atlas, 0);
-	gpu_shader_use(dbgtext->shader);
 	for (int i = 0; i < text_len; i++) {
 		char c = text[i];
 
@@ -183,44 +142,51 @@ PRIVATE void _dbgtext_draw_text(app_t* app, const char* text, usize text_len) {
 		int gx = gc % (_dbgtext_atlas_columns);
 		int gy = gc / (_dbgtext_atlas_columns);
 		
-		gpu_shader_set_vec2f(dbgtext->shader, "u_pos", x, y);
-		gpu_shader_set_vec2f(dbgtext->shader, "u_glyph_pos", gx, gy);
-		gpu_verts_draw(dbgtext->verts);
+		const float font_size = 32;
+		sprite_batch_rect(sprite_batch, &(vec4_t){
+			x * font_size,
+			wind_size.height + ((y-1) * font_size),
+			font_size,
+			font_size,
+		});
+		sprite_batch_src_rect(sprite_batch, &(vec4_t){
+			(gx * _dbgtext_glyph_width) / (float)_dbgtext_atlas_width,
+			1.0f - ((gy+1) * _dbgtext_glyph_height) / (float)_dbgtext_atlas_height,
+			_dbgtext_glyph_width / (float)_dbgtext_atlas_width, 
+			_dbgtext_glyph_height / (float)_dbgtext_atlas_height,
+		});
+		sprite_batch_draw(sprite_batch);
 
 		x += 1;
 	}
+	
+	sprite_batch_end(sprite_batch);
 }
 
-void _dbgtext_frame(dbgtext_t* dbgtext) {
-	app_t* app = dbgtext->app;
-
-	gpu_shader_use(dbgtext->shader);
-	gpu_texture_use(dbgtext->atlas, 0);
-
-	gpu_shader_set_vec2f(dbgtext->shader, "u_window_size", app_window_size(app).width, app_window_size(app).height);
+void dbgtext_flush(dbgtext_t* dbgtext) {
 	if (string_empty(&dbgtext->buffer) == false) {
-		_dbgtext_draw_text(app, string_ptr(&dbgtext->buffer), string_length(&dbgtext->buffer));
+		_dbgtext_draw_text(dbgtext, string_ptr(&dbgtext->buffer), string_length(&dbgtext->buffer));
 	}
 	string_clear(&dbgtext->buffer);
 }
 
-stream_t dbgtext_stream(app_t* app) {
-	return string_stream_new(&app->_dbgtext->buffer);
+stream_t dbgtext_stream(dbgtext_t* dbgtext) {
+	return string_stream_new(&dbgtext->buffer);
 }
 
 
-void dbgtext_print(app_t* app, const char* cstr_or_format, ...) {
+void dbgtext_print(dbgtext_t* dbgtext, const char* cstr_or_format, ...) {
     va_list args;
     va_start(args, cstr_or_format);
-    stream_t stdout_stream = dbgtext_stream(app);
+    stream_t stdout_stream = dbgtext_stream(dbgtext);
     format_va_args(&stdout_stream, cstr_or_format, &args);
     va_end(args);
 }
 
-void dbgtext_println(app_t* app, const char* cstr_or_format, ...) {
+void dbgtext_println(dbgtext_t* dbgtext, const char* cstr_or_format, ...) {
     va_list args;
     va_start(args, cstr_or_format);
-    stream_t stdout_stream = dbgtext_stream(app);
+    stream_t stdout_stream = dbgtext_stream(dbgtext);
     format_va_args(&stdout_stream, cstr_or_format, &args);
     stream_write_char(&stdout_stream, '\n');
     va_end(args);
