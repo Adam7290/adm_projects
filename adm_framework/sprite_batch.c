@@ -105,6 +105,7 @@ typedef struct sprite_batch_t {
 	float _param_rot;
 	gpu_texture_t* _param_texture;
 	gpu_shader_t* _param_effect;
+	mat4x4_t _param_view;
 } sprite_batch_t;
 
 PRIVATE void _sprite_batch_destroy_internal(sprite_batch_t* sprite_batch) {
@@ -137,15 +138,15 @@ sprite_batch_t* sprite_batch_new(gpu_t* gpu, arena_t* arena) {
 	} vertex_t;
 	
 	const vertex_t verts[] = {
-		(vertex_t){  1.0f,	1.0f,  1.0f, 1.0f, }, // Top-right
-		(vertex_t){  1.0f,  0.0f,  1.0f, 0.0f, }, // Bottom-right
 		(vertex_t){  0.0f,  0.0f,  0.0f, 0.0f, }, // Bottom-left
+		(vertex_t){  1.0f,  0.0f,  1.0f, 0.0f, }, // Bottom-right
+		(vertex_t){  1.0f,	1.0f,  1.0f, 1.0f, }, // Top-right
 	    (vertex_t){  0.0f,  1.0f,  0.0f, 1.0f, }, // Top-left
 	};
 
 	const gpu_index_t indices[] = {
-		0, 1, 3,
-		1, 2, 3,
+		0, 1, 2,
+		2, 3, 0,
 	};
 
 	gpu_vert_decl_t vert_decl = gpu_vert_decl_new(arena, 2,
@@ -216,12 +217,7 @@ void sprite_batch_flush(sprite_batch_t* sprite_batch) {
 	mat4x4_t proj = mat4x4_orthographic(0, wind_size.width, 0, wind_size.height, -1.f, 1.f); 
 	gpu_shader_set_mat4x4(sprite_batch->_param_effect, "u_proj", &proj);
 
-	mat4x4_t view = mat4x4_identity();
-	// mat4x4_rotate_z(&view, 45.f);
-	// mat4x4_scale(&view, &(vec3f_t){ 0.5f, 0.5f, 1.0f });
-	// mat4x4_translate(&view, &(vec3f_t){ 400, 100, 0 });
-
-	gpu_shader_set_mat4x4(sprite_batch->_param_effect, "u_view", &view);
+	gpu_shader_set_mat4x4(sprite_batch->_param_effect, "u_view", &sprite_batch->_param_view);
 	
 	gpu_texture_use(sprite_batch->_param_texture, 0);
 	gpu_verts_draw_instanced(sprite_batch->_verts, item_count);
@@ -288,6 +284,10 @@ void sprite_batch_effect(sprite_batch_t* sprite_batch, NULLABLE gpu_shader_t* ef
 	}
 }
 
+void sprite_batch_view(sprite_batch_t* sprite_batch, NULLABLE const mat4x4_t* view) {
+	sprite_batch->_param_view = view != NULL ? *view : mat4x4_identity();
+}
+
 void sprite_batch_reset_params(sprite_batch_t* sprite_batch) {
 	sprite_batch_rect(sprite_batch, NULL);
 	sprite_batch_src_rect(sprite_batch, NULL);
@@ -296,6 +296,7 @@ void sprite_batch_reset_params(sprite_batch_t* sprite_batch) {
 	sprite_batch_rot(sprite_batch, 0.0f);
 	sprite_batch_texture(sprite_batch, NULL);
 	sprite_batch_effect(sprite_batch, NULL);
+	sprite_batch_view(sprite_batch, NULL);
 }
 
 gpu_shader_t* sprite_batch_effect_create(sprite_batch_t* sprite_batch, arena_t* arena, const char* frag_source) {

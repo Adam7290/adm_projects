@@ -9,6 +9,7 @@ typedef struct gpu_shader_t gpu_shader_t;
 typedef struct arena_t arena_t;
 typedef struct vec4f_t vec4f_t;
 typedef struct vec2f_t vec2f_t;
+typedef struct mat4x4_t mat4x4_t;
 
 sprite_batch_t* sprite_batch_new(gpu_t* gpu, arena_t* arena);
 void sprite_batch_start(sprite_batch_t* sprite_batch);
@@ -23,6 +24,7 @@ void sprite_batch_rot(sprite_batch_t* sprite_batch, float rot);
 void sprite_batch_origin(sprite_batch_t* sprite_batch, const vec2f_t* origin);
 void sprite_batch_texture(sprite_batch_t* sprite_batch, NULLABLE gpu_texture_t* texture);
 void sprite_batch_effect(sprite_batch_t* sprite_batch, NULLABLE gpu_shader_t* effect);
+void sprite_batch_view(sprite_batch_t* sprite_batch, NULLABLE const mat4x4_t* view);
 void sprite_batch_reset_params(sprite_batch_t* sprite_batch);
 gpu_shader_t* sprite_batch_effect_create(sprite_batch_t* sprite_batch, arena_t* arena, const char* frag_source);
 void sprite_batch_destroy(sprite_batch_t* sprite_batch);
