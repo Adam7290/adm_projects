@@ -2,6 +2,7 @@
 #include "app.h"
 #include "gpu.h"
 #include "sprite_batch.h"
+#include "gmath.h"
 
 #include <adm_utils/util.h>
 #include <adm_utils/arena.h>
@@ -123,7 +124,7 @@ PRIVATE void _dbgtext_draw_text(dbgtext_t* dbgtext, const char* text, usize text
 	sprite_batch_start(sprite_batch);
 	sprite_batch_texture(sprite_batch, dbgtext->atlas);
 	sprite_batch_effect(sprite_batch, dbgtext->effect);
-	sprite_batch_color(sprite_batch, &(vec4_t){ 1.0, 1.0, 1.0, 1.0 });
+	sprite_batch_color(sprite_batch, &(vec4f_t){ 1.0, 1.0, 1.0, 1.0 });
 
 	app_window_size_t wind_size = app_window_size(dbgtext->app);
 
@@ -143,13 +144,13 @@ PRIVATE void _dbgtext_draw_text(dbgtext_t* dbgtext, const char* text, usize text
 		int gy = gc / (_dbgtext_atlas_columns);
 		
 		const float font_size = 32;
-		sprite_batch_rect(sprite_batch, &(vec4_t){
+		sprite_batch_rect(sprite_batch, &(vec4f_t){
 			x * font_size,
 			wind_size.height + ((y-1) * font_size),
 			font_size,
 			font_size,
 		});
-		sprite_batch_src_rect(sprite_batch, &(vec4_t){
+		sprite_batch_src_rect(sprite_batch, &(vec4f_t){
 			(gx * _dbgtext_glyph_width) / (float)_dbgtext_atlas_width,
 			1.0f - ((gy+1) * _dbgtext_glyph_height) / (float)_dbgtext_atlas_height,
 			_dbgtext_glyph_width / (float)_dbgtext_atlas_width, 

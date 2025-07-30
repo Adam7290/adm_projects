@@ -1,12 +1,17 @@
 #pragma once
 
-#include "types.h"
+#include <adm_utils/util.h>
 
 typedef struct gpu_t gpu_t;
 typedef struct app_t app_t;
 typedef struct arena_t arena_t;
 typedef struct image_t image_t;
 typedef enum image_format_t image_format_t;
+
+typedef struct color4b_t color4b_t;
+typedef struct vec2f_t vec2f_t;
+typedef struct vec3f_t vec3f_t;
+typedef struct mat4x4_t mat4x4_t;
 
 typedef enum gpu_vert_attr_type_t {
     GPU_VERT_ATTR_TYPE_FLOAT,
@@ -62,7 +67,8 @@ void _gpu_init(app_t* app);
 void _gpu_frame(gpu_t* gpu);
 app_t* gpu_app(gpu_t* gpu);
 
-void gpu_clear(gpu_t* gpu, color_t color);
+void gpu_clear(gpu_t* gpu, const color4b_t* color);
+void gpu_wireframe(gpu_t* gpu, bool wireframe);
 
 gpu_vert_decl_t gpu_vert_decl_new(arena_t* arena, usize count, ...);
 #define gpu_vert_decl_free _gpu_vert_decl_free
@@ -83,9 +89,9 @@ void gpu_shader_set_int(gpu_shader_t* shader, const char* name, int value);
 // TODO: Add all the uniform functions
 // TODO: Downgrade ogl to 33 core and make it so you have to manually bind shader to use these uniform funcs
 void gpu_shader_set_vec2i(gpu_shader_t* shader, const char* name, int x, int y);
-void gpu_shader_set_vec2f(gpu_shader_t* shader, const char* name, float x, float y);
-void gpu_shader_set_vec3f(gpu_shader_t* shader, const char* name, float x, float y, float z);
-void gpu_shader_set_mat4x4(gpu_shader_t* shader, const char* name, const mat4x4_t mat);
+void gpu_shader_set_vec2f(gpu_shader_t* shader, const char* name, const vec2f_t* vec2);
+void gpu_shader_set_vec3f(gpu_shader_t* shader, const char* name, const vec3f_t* vec3);
+void gpu_shader_set_mat4x4(gpu_shader_t* shader, const char* name, const mat4x4_t* mat4x4);
 void gpu_shader_bind_uniform_buffer(gpu_shader_t* shader, const char* name, gpu_uniform_buffer_t* buffer);
 void gpu_shader_destroy(gpu_shader_t* shader);
 

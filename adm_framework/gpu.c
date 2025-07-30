@@ -2,6 +2,7 @@
 #include "gpu.h"
 #include "app.h"
 #include "image.h"
+#include "gmath.h"
 
 #include <adm_utils/panic.h>
 #include <adm_utils/string.h>
@@ -33,14 +34,18 @@ app_t* gpu_app(gpu_t* gpu) {
 	return gpu->app;
 }
 
-void gpu_clear(gpu_t* gpu, color_t color) {
+void gpu_clear(gpu_t* gpu, const color4b_t* color) {
     glClearColor(
-        color.red / 255.0f, 
-        color.green / 255.0f, 
-        color.blue / 255.0f, 
-        color.alpha / 255.0f
+        color->r / 255.0f, 
+        color->g / 255.0f, 
+        color->b / 255.0f, 
+        color->a / 255.0f
     );
     glClear(GL_COLOR_BUFFER_BIT);
+}
+
+void gpu_wireframe(gpu_t* gpu, bool wireframe) {
+	glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
 }
 
 gpu_vert_decl_t gpu_vert_decl_new(arena_t* arena, usize count, ...) {
@@ -239,27 +244,24 @@ void gpu_shader_set_float(gpu_shader_t* shader, const char* name, float value) {
     glProgramUniform1f(shader->_handle, glGetUniformLocation(shader->_handle, name), value);
 }
 
-
 void gpu_shader_set_int(gpu_shader_t* shader, const char* name, int value) {
     glProgramUniform1i(shader->_handle, glGetUniformLocation(shader->_handle, name), value);
 }
-
 
 void gpu_shader_set_vec2i(gpu_shader_t* shader, const char* name, int x, int y) {
 	glProgramUniform2i(shader->_handle, glGetUniformLocation(shader->_handle, name), x, y);
 }
 
-void gpu_shader_set_vec2f(gpu_shader_t* shader, const char* name, float x, float y) {
-	glProgramUniform2f(shader->_handle, glGetUniformLocation(shader->_handle, name), x, y);
+void gpu_shader_set_vec2f(gpu_shader_t* shader, const char* name, const vec2f_t* vec2) {
+	glProgramUniform2fv(shader->_handle, glGetUniformLocation(shader->_handle, name), 1, vec2->array);
 }
 
-
-void gpu_shader_set_vec3f(gpu_shader_t* shader, const char* name, float x, float y, float z) {
-	glProgramUniform3f(shader->_handle, glGetUniformLocation(shader->_handle, name), x, y, z);
+void gpu_shader_set_vec3f(gpu_shader_t* shader, const char* name, const vec3f_t* vec3) {
+	glProgramUniform3fv(shader->_handle, glGetUniformLocation(shader->_handle, name), 1, vec3->array);
 }
 
-void gpu_shader_set_mat4x4(gpu_shader_t* shader, const char* name, const mat4x4_t mat) {
-	glProgramUniformMatrix4fv(shader->_handle, glGetUniformLocation(shader->_handle, name), 1, GL_FALSE, (float*)mat);
+void gpu_shader_set_mat4x4(gpu_shader_t* shader, const char* name, const mat4x4_t* mat4x4) {
+	glProgramUniformMatrix4fv(shader->_handle, glGetUniformLocation(shader->_handle, name), 1, GL_FALSE, (float*)mat4x4);
 }
 
 void gpu_shader_bind_uniform_buffer(gpu_shader_t* shader, const char* name, gpu_uniform_buffer_t* buffer) {

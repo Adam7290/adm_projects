@@ -1,8 +1,10 @@
 #include "sprite_batch.h"
 
+#include "adm_framework/time.h"
 #include "gpu.h"
 #include "image.h"
 #include "app.h"
+#include "gmath.h"
 
 #include <adm_utils/arena.h>
 #include <adm_utils/util.h>
@@ -25,6 +27,8 @@ PRIVATE const char* _sprite_batch_vert_shader =
 "	vec4 rect;\n"
 "	vec4 src_rect;\n"
 "	vec4 color;\n"
+"	vec2 origin;\n"
+"	float rot;\n"
 "};\n"
 
 "layout (std140) uniform sprite_batch_b {\n"
@@ -36,7 +40,18 @@ PRIVATE const char* _sprite_batch_vert_shader =
 
 "void main() {\n"
 "	sprite_batch_item_t item = u_sprite_batch_items[gl_InstanceID];\n"
-"	gl_Position = u_proj * u_view * vec4(item.rect.xy + (in_pos * item.rect.zw), 0.0, 1.0);\n"
+"	vec2 pos = (in_pos - item.origin) * item.rect.zw;\n"
+"	if (item.rot != 0.0f) {\n"
+"		float s = sin(item.rot);\n"
+"		float c = cos(item.rot);\n"
+"		pos = vec2(\n"
+"			pos.x * c - pos.y * s,\n"
+"			pos.x * s + pos.y * c\n"
+"		);\n"
+"	}\n"
+
+"	gl_Position = u_proj * u_view * vec4(item.rect.xy + pos, 0.0, 1.0);\n"
+
 "	vert_uv = item.src_rect.xy + (item.src_rect.zw * in_uv);\n"
 "	vert_color = item.color;\n"
 "}\n"
@@ -56,10 +71,14 @@ PRIVATE const char* _sprite_batch_frag_shader =
 ;
 
 // MUST CHANGE SHADER STRUCT TOO
+// Warning: Must align bytes
 typedef struct _sprite_batch_item_t {
-	vec4_t rect;
-	vec4_t src_rect;
-	vec4_t color;
+	vec4f_t rect;
+	vec4f_t src_rect;
+	vec4f_t color;
+	vec2f_t origin;
+	float rot;
+	float __PADDING[1];
 } _sprite_batch_item_t;
 
 #define VEC_IMPLEMENTATION
@@ -79,9 +98,11 @@ typedef struct sprite_batch_t {
 
 	gpu_texture_t* _texture_blank;
 
-	vec4_t _param_rect;
-	vec4_t _param_src_rect;
-	vec4_t _param_color;
+	vec4f_t _param_rect;
+	vec4f_t _param_src_rect;
+	vec4f_t _param_color;
+	vec2f_t _param_origin;
+	float _param_rot;
 	gpu_texture_t* _param_texture;
 	gpu_shader_t* _param_effect;
 } sprite_batch_t;
@@ -178,7 +199,7 @@ void sprite_batch_flush(sprite_batch_t* sprite_batch) {
 		return;
 	}
 
-	console_println("Flushing {} sprites in batch...", FORMAT(int, item_count));
+//	console_println("Flushing {} sprites in batch...", FORMAT(int, item_count));
 
 	gpu_shader_use(sprite_batch->_param_effect);
 	gpu_shader_set_int(sprite_batch->_param_effect, "u_texture", 0);
@@ -192,11 +213,15 @@ void sprite_batch_flush(sprite_batch_t* sprite_batch) {
 
 	app_t* app = gpu_app(sprite_batch->_gpu);
 	app_window_size_t wind_size = app_window_size(app);
-	mat4x4_t proj; mat4x4_ortho(proj, 0, wind_size.width, 0, wind_size.height, -1.f, 1.f); 
-	gpu_shader_set_mat4x4(sprite_batch->_param_effect, "u_proj", proj);
+	mat4x4_t proj = mat4x4_orthographic(0, wind_size.width, 0, wind_size.height, -1.f, 1.f); 
+	gpu_shader_set_mat4x4(sprite_batch->_param_effect, "u_proj", &proj);
 
-	mat4x4_t view; mat4x4_identity(view);
-	gpu_shader_set_mat4x4(sprite_batch->_param_effect, "u_view", view);
+	mat4x4_t view = mat4x4_identity();
+	// mat4x4_rotate_z(&view, 45.f);
+	// mat4x4_scale(&view, &(vec3f_t){ 0.5f, 0.5f, 1.0f });
+	// mat4x4_translate(&view, &(vec3f_t){ 400, 100, 0 });
+
+	gpu_shader_set_mat4x4(sprite_batch->_param_effect, "u_view", &view);
 	
 	gpu_texture_use(sprite_batch->_param_texture, 0);
 	gpu_verts_draw_instanced(sprite_batch->_verts, item_count);
@@ -206,29 +231,33 @@ void sprite_batch_flush(sprite_batch_t* sprite_batch) {
 
 void sprite_batch_draw(sprite_batch_t* sprite_batch) {
 	_sprite_batch_item_t item;
-	vec4_dup(item.rect, sprite_batch->_param_rect);	
-	vec4_dup(item.src_rect, sprite_batch->_param_src_rect);	
-	vec4_dup(item.color, sprite_batch->_param_color);	
+	item.rect = sprite_batch->_param_rect;
+	item.src_rect = sprite_batch->_param_src_rect;
+	item.color = sprite_batch->_param_color;
+	item.rot = sprite_batch->_param_rot;
+	item.origin = sprite_batch->_param_origin;
 
 	_sprite_batch_add(sprite_batch, &item);
 }
 
-void sprite_batch_rect(sprite_batch_t* sprite_batch, NULLABLE const vec4_t* rect) {
-	vec4_dup(sprite_batch->_param_rect, 
-		rect != NULL ? *rect : (vec4_t){ 0.0f, 0.0f, 0.0f, 0.0f }
-	);
+void sprite_batch_rect(sprite_batch_t* sprite_batch, NULLABLE const vec4f_t* rect) {
+	sprite_batch->_param_rect = rect != NULL ? *rect : (vec4f_t){ 0.0f, 0.0f, 0.0f, 0.0f };
 }
 
-void sprite_batch_src_rect(sprite_batch_t* sprite_batch, NULLABLE const vec4_t* src_rect) {
-	vec4_dup(sprite_batch->_param_src_rect, 
-		src_rect != NULL ? *src_rect: (vec4_t){ 0.0f, 0.0f, 1.0f, 1.0f }
-	);
+void sprite_batch_src_rect(sprite_batch_t* sprite_batch, NULLABLE const vec4f_t* src_rect) {
+	sprite_batch->_param_src_rect = src_rect != NULL ? *src_rect: (vec4f_t){ 0.0f, 0.0f, 1.0f, 1.0f };
 }
 
-void sprite_batch_color(sprite_batch_t* sprite_batch, NULLABLE const vec4_t* color) {
-	vec4_dup(sprite_batch->_param_color, 
-		color != NULL ? *color: (vec4_t){ 1.0f, 1.0f, 1.0f, 1.0f }
-	);
+void sprite_batch_color(sprite_batch_t* sprite_batch, NULLABLE const vec4f_t* color) {
+	sprite_batch->_param_color = color != NULL ? *color: (vec4f_t){ 1.0f, 1.0f, 1.0f, 1.0f };
+}
+
+void sprite_batch_rot(sprite_batch_t* sprite_batch, float rot) {
+	sprite_batch->_param_rot = deg_to_rad(rot);
+}
+
+void sprite_batch_origin(sprite_batch_t* sprite_batch, const vec2f_t* origin) {
+	sprite_batch->_param_origin = origin != NULL ? *origin : (vec2f_t){ 0.f, 0.f };
 }
 
 void sprite_batch_texture(sprite_batch_t* sprite_batch, NULLABLE gpu_texture_t* texture) {
@@ -262,7 +291,9 @@ void sprite_batch_effect(sprite_batch_t* sprite_batch, NULLABLE gpu_shader_t* ef
 void sprite_batch_reset_params(sprite_batch_t* sprite_batch) {
 	sprite_batch_rect(sprite_batch, NULL);
 	sprite_batch_src_rect(sprite_batch, NULL);
-	sprite_batch_color(sprite_batch, NULL);
+	sprite_batch_color(sprite_batch, NULL);	
+	sprite_batch_origin(sprite_batch, NULL);
+	sprite_batch_rot(sprite_batch, 0.0f);
 	sprite_batch_texture(sprite_batch, NULL);
 	sprite_batch_effect(sprite_batch, NULL);
 }

@@ -5,7 +5,6 @@ typedef struct sprite_batch_t sprite_batch_t;
 typedef struct arena_t arena_t;
 typedef struct stream_t stream_t;
 
-
 dbgtext_t* dbgtext_new(sprite_batch_t* sprite_batch, arena_t* arena);
 // Draws text to screen and flushes buffer
 void dbgtext_flush(dbgtext_t* dbgtext);

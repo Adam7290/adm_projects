@@ -5,6 +5,7 @@
 #include <adm_framework/image.h>
 #include <adm_framework/dbgtext.h>
 #include <adm_framework/sprite_batch.h>
+#include <adm_framework/gmath.h>
 
 #include <adm_utils/arena.h>
 #include <adm_utils/console.h>
@@ -28,31 +29,38 @@ int main() {
 
 	app_show(app);
 	while (app_frame(app) == true) {
-		gpu_clear(gpu, input_key_down(app, INPUT_KEY_SPACE) ? COLOR_WHITE : COLOR_BLACK);
+		gpu_clear(gpu, &(color4b_t){ .hex = 0x00000000 });
 
+		gpu_wireframe(gpu, true);
 		sprite_batch_start(sprite_batch);
 
 		sprite_batch_texture(sprite_batch, sad);
-		sprite_batch_rect(sprite_batch, &(vec4_t){ 100.0, 100.0, 100.0, 100.0 });
-		sprite_batch_src_rect(sprite_batch, &(vec4_t){ 0.5, 0.5, 1.0, 1.0 });
-		sprite_batch_color(sprite_batch, &(vec4_t){ 1.0, 0.3, 0.5, 1.0 });
+		sprite_batch_rect(sprite_batch, &(vec4f_t){ 100.0, 100.0, 100.0, 100.0 });
+		sprite_batch_src_rect(sprite_batch, &(vec4f_t){ 0.5, 0.5, 1.0, 1.0 });
+		sprite_batch_color(sprite_batch, &(vec4f_t){ 1.0, 0.3, 0.5, 1.0 });
+		sprite_batch_origin(sprite_batch, &(vec2f_t){ 0.5, 0.5 });
+		sprite_batch_rot(sprite_batch, time_app_elapsed(app).time * 360);
 		sprite_batch_draw(sprite_batch);
 
-		sprite_batch_texture(sprite_batch, NULL);
-		sprite_batch_rect(sprite_batch, &(vec4_t){ 300.0, 200.0, 250.0, 50.0 });
+		sprite_batch_rect(sprite_batch, &(vec4f_t){ 300, 200, 250, 10 });
 		sprite_batch_src_rect(sprite_batch, NULL);
-		sprite_batch_color(sprite_batch, &(vec4_t){ 0.5, 0.5, 1.0 });
+		sprite_batch_color(sprite_batch, &(vec4f_t){ 0.5, 0.5, 1.0 });
+		sprite_batch_rot(sprite_batch, 45); 
+		sprite_batch_origin(sprite_batch, NULL);
+		sprite_batch_texture(sprite_batch, NULL);
 		sprite_batch_draw(sprite_batch);
 
+		sprite_batch_rot(sprite_batch, 0);
 		sprite_batch_texture(sprite_batch, happy);
 		sprite_batch_src_rect(sprite_batch, NULL);
-		sprite_batch_color(sprite_batch, &(vec4_t){ 1.0, 1.0, 1.0, 1.0 });
+		sprite_batch_color(sprite_batch, &(vec4f_t){ 1.0, 1.0, 1.0, 1.0 });
 		for (int i = 0; i < 1024; i++) {
-			sprite_batch_rect(sprite_batch, &(vec4_t){ i * 10, 0, 10, 10 });
+			sprite_batch_rect(sprite_batch, &(vec4f_t){ i * 10, 0, 10, 10 });
 			sprite_batch_draw(sprite_batch);
 		}
 
 		sprite_batch_end(sprite_batch);
+		gpu_wireframe(gpu, false);
 
 		dbgtext_println(dbgtext,
 		 	"Elapsed: {}s\nDelta: {}\nFPS: {}", 
