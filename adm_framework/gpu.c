@@ -21,6 +21,9 @@ void _gpu_init(app_t* app) {
 	gpu->app = app;
 
     PANIC_ASSERT(gladLoadGLLoader((GLADloadproc)glfwGetProcAddress) == 1, "Failed to load GLAD.");
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 }
 
 void _gpu_frame(gpu_t* gpu) {
@@ -241,27 +244,33 @@ void gpu_shader_use(NULLABLE gpu_shader_t* shader) {
 }
 
 void gpu_shader_set_float(gpu_shader_t* shader, const char* name, float value) {
-    glProgramUniform1f(shader->_handle, glGetUniformLocation(shader->_handle, name), value);
+	gpu_shader_use(shader);
+    glUniform1f(glGetUniformLocation(shader->_handle, name), value);
 }
 
 void gpu_shader_set_int(gpu_shader_t* shader, const char* name, int value) {
-    glProgramUniform1i(shader->_handle, glGetUniformLocation(shader->_handle, name), value);
+	gpu_shader_use(shader);
+    glUniform1i(glGetUniformLocation(shader->_handle, name), value);
 }
 
 void gpu_shader_set_vec2i(gpu_shader_t* shader, const char* name, int x, int y) {
-	glProgramUniform2i(shader->_handle, glGetUniformLocation(shader->_handle, name), x, y);
+	gpu_shader_use(shader);
+	glUniform2i(glGetUniformLocation(shader->_handle, name), x, y);
 }
 
 void gpu_shader_set_vec2f(gpu_shader_t* shader, const char* name, const vec2f_t* vec2) {
-	glProgramUniform2fv(shader->_handle, glGetUniformLocation(shader->_handle, name), 1, vec2->array);
+	gpu_shader_use(shader);
+	glUniform2fv(glGetUniformLocation(shader->_handle, name), 1, vec2->array);
 }
 
 void gpu_shader_set_vec3f(gpu_shader_t* shader, const char* name, const vec3f_t* vec3) {
-	glProgramUniform3fv(shader->_handle, glGetUniformLocation(shader->_handle, name), 1, vec3->array);
+	gpu_shader_use(shader);
+	glUniform3fv(glGetUniformLocation(shader->_handle, name), 1, vec3->array);
 }
 
 void gpu_shader_set_mat4x4(gpu_shader_t* shader, const char* name, const mat4x4_t* mat4x4) {
-	glProgramUniformMatrix4fv(shader->_handle, glGetUniformLocation(shader->_handle, name), 1, GL_FALSE, (float*)mat4x4);
+	gpu_shader_use(shader);
+	glUniformMatrix4fv(glGetUniformLocation(shader->_handle, name), 1, GL_FALSE, (float*)mat4x4);
 }
 
 void gpu_shader_bind_uniform_buffer(gpu_shader_t* shader, const char* name, gpu_uniform_buffer_t* buffer) {
@@ -362,9 +371,8 @@ gpu_uniform_buffer_t* gpu_uniform_buffer_create(gpu_t* gpu, arena_t* arena) {
 	buffer->_arena = arena;
 	buffer->_gpu = gpu;
 	
-	glCreateBuffers(1, &buffer->_handle);
+	glGenBuffers(1, &buffer->_handle);
 	
-
 	return buffer;
 }
 

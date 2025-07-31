@@ -15,7 +15,7 @@
 #define _sprite_batch_max_size 256
 
 PRIVATE const char* _sprite_batch_vert_shader =
-"#version 460 core\n"
+"#version 330 core\n"
 
 "layout (location = 0) in vec2 in_pos;\n"
 "layout (location = 1) in vec2 in_uv;\n"
@@ -58,7 +58,7 @@ PRIVATE const char* _sprite_batch_vert_shader =
 ;
 
 PRIVATE const char* _sprite_batch_frag_shader = 
-"#version 460 core\n"
+"#version 330 core\n"
 
 "in vec2 vert_uv;\n"
 "in vec4 vert_color;\n"

@@ -70,7 +70,7 @@ PRIVATE const byte _dbgtext_atlas_data[]  = {
 };
 
 PRIVATE const char* _dbgtext_frag_shader = 
-"#version 460 core\n"
+"#version 330 core\n"
 
 "in vec2 vert_uv;\n"
 "in vec4 vert_color;\n"
