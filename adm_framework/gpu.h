@@ -13,23 +13,18 @@ typedef struct vec2f_t vec2f_t;
 typedef struct vec3f_t vec3f_t;
 typedef struct mat4x4_t mat4x4_t;
 
-typedef enum gpu_vert_attr_type_t {
-    GPU_VERT_ATTR_TYPE_FLOAT,
-    _gpu_vert_attr_type_count,
-} gpu_vert_attr_type_t;
+typedef enum gpu_attribute_type_t {
+    GPU_ATTRIBUTE_TYPE_FLOAT,
+    _gpu_attribute_type_count,
+} gpu_attribute_type_t;
 
-typedef struct gpu_vert_attr_t {
+typedef struct gpu_attribute_t {
     usize size;
-    gpu_vert_attr_type_t type;
-} gpu_vert_attr_t;
-
-#define VEC_TEMPLATE gpu_vert_attr_t
-#define VEC_TEMPLATE_PREFIX _gpu_vert_decl_
-#include <adm_utils/vec_impl.h>
+    gpu_attribute_type_t type;
+} gpu_attribute_t;
 
 typedef ushort gpu_index_t;
 
-typedef struct _gpu_vert_decl_t gpu_vert_decl_t;
 typedef struct gpu_verts_t {
     uint _vbo, _vao, _ebo;
     usize _vertex_size, _buffer_length;
@@ -70,10 +65,7 @@ app_t* gpu_app(gpu_t* gpu);
 void gpu_clear(gpu_t* gpu, const color4b_t* color);
 void gpu_wireframe(gpu_t* gpu, bool wireframe);
 
-gpu_vert_decl_t gpu_vert_decl_new(arena_t* arena, usize count, ...);
-#define gpu_vert_decl_free _gpu_vert_decl_free
-
-gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, gpu_vert_decl_t* vert_decl, bool has_indices);
+gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, bool has_indices, gpu_attribute_t attributes[]);
 void gpu_verts_upload(gpu_verts_t* verts, const void* ptr, usize length);
 void gpu_verts_upload_indices(gpu_verts_t* verts, const gpu_index_t* ptr, usize length); 
 

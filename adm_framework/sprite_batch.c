@@ -149,15 +149,13 @@ sprite_batch_t* sprite_batch_new(gpu_t* gpu, arena_t* arena) {
 		2, 3, 0,
 	};
 
-	gpu_vert_decl_t vert_decl = gpu_vert_decl_new(arena, 2,
-		(gpu_vert_attr_t){ 2, GPU_VERT_ATTR_TYPE_FLOAT, },
-		(gpu_vert_attr_t){ 2, GPU_VERT_ATTR_TYPE_FLOAT, }
-	);
-
-	sprite_batch->_verts = gpu_verts_create(gpu, arena, &vert_decl, true); 
+	sprite_batch->_verts = gpu_verts_create(gpu, arena, true, (gpu_attribute_t[]){
+		{ 2, GPU_ATTRIBUTE_TYPE_FLOAT, },
+		{ 2, GPU_ATTRIBUTE_TYPE_FLOAT, },
+		{ 0 },
+	}); 
 	gpu_verts_upload(sprite_batch->_verts, verts, sizeof(verts));
 	gpu_verts_upload_indices(sprite_batch->_verts, indices, sizeof(indices));
-	gpu_vert_decl_free(&vert_decl);
 
 	// Blank texture
 	sprite_batch->_texture_blank = gpu_texture_create(gpu, arena);

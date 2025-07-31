@@ -1,4 +1,3 @@
-#define VEC_IMPLEMENTATION
 #include "gpu.h"
 #include "app.h"
 #include "image.h"
@@ -51,29 +50,13 @@ void gpu_wireframe(gpu_t* gpu, bool wireframe) {
 	glPolygonMode(GL_FRONT_AND_BACK, wireframe ? GL_LINE : GL_FILL);
 }
 
-gpu_vert_decl_t gpu_vert_decl_new(arena_t* arena, usize count, ...) {
-    va_list args;
-    va_start(args, count);
-
-    gpu_vert_decl_t decl = _gpu_vert_decl_new(arena);
-    _gpu_vert_decl_reserve(&decl, count);
-    for (int i = 0; i < count; i++) {
-        gpu_vert_attr_t attr = va_arg(args, gpu_vert_attr_t);
-        _gpu_vert_decl_push(&decl, attr);
-    }
-
-    va_end(args);
-
-    return decl;
-}
-
 PRIVATE void _gpu_verts_destroy_internal(gpu_verts_t* verts) {
     glDeleteVertexArrays(1, &verts->_vao);
     glDeleteBuffers(1, &verts->_vbo);
 	glDeleteBuffers(1, &verts->_ebo);
 }
 
-gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, gpu_vert_decl_t* vert_decl, bool has_indices) {
+gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, bool has_indices, gpu_attribute_t attributes[]) {
     gpu_verts_t* verts = arena_defer(arena, _gpu_verts_destroy_internal, gpu_verts_t);
     verts->_arena = arena;
 	verts->_gpu = gpu;
@@ -89,21 +72,26 @@ gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, gpu_vert_decl_t* vert_
     glBindVertexArray(verts->_vao);
     glBindBuffer(GL_ARRAY_BUFFER, verts->_vbo);
 
-    // Calculate stride
-    usize stride = 0;
-    for (int i = 0; i < _gpu_vert_decl_length(vert_decl); i++) {
-        gpu_vert_attr_t* vert = _gpu_vert_decl_get_unchecked(vert_decl, i);
-        stride += vert->size * sizeof(float); // MAGIC TYPE SIZEOF
-    }
+	// Calculate total_attributes and stride
+	usize total_attributes = 0;
+	usize stride = 0;
+	{
+		gpu_attribute_t* attr = attributes;
+		while (attr->size != 0) {
+			total_attributes++;	
+			stride += attr->size * sizeof(float); // MAGIC TYPE SIZEOF
+			attr++;
+		}
+	}
     verts->_vertex_size = stride;
 
     // Actually setup opengl vertex attribs
     usize offset = 0;
-    for (int i = 0; i < _gpu_vert_decl_length(vert_decl); i++) {
-        gpu_vert_attr_t* vert = _gpu_vert_decl_get_unchecked(vert_decl, i);
+    for (int i = 0; i < total_attributes; i++) {
+		gpu_attribute_t attr = attributes[i];
         glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, vert->size, GL_FLOAT, GL_FALSE, stride, (void*)offset); // MAGIC GL_FLOAT
-        offset += vert->size * sizeof(float); // MAGIC TYPE SIZEOF
+        glVertexAttribPointer(i, attr.size, GL_FLOAT, GL_FALSE, stride, (void*)offset); // MAGIC GL_FLOAT
+        offset += attr.size * sizeof(float); // MAGIC TYPE SIZEOF
     }
 
     glBindVertexArray(0);
