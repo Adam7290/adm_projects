@@ -231,34 +231,38 @@ void gpu_shader_use(NULLABLE gpu_shader_t* shader) {
     }
 }
 
-void gpu_shader_set_float(gpu_shader_t* shader, const char* name, float value) {
-	gpu_shader_use(shader);
-    glUniform1f(glGetUniformLocation(shader->_handle, name), value);
+gpu_uniform_t gpu_shader_get_uniform(gpu_shader_t* shader, const char* name) {
+	return (gpu_uniform_t)glGetUniformLocation(shader->_handle, name);
 }
 
-void gpu_shader_set_int(gpu_shader_t* shader, const char* name, int value) {
+void gpu_shader_set_float(gpu_shader_t* shader, gpu_uniform_t uniform, float value) {
 	gpu_shader_use(shader);
-    glUniform1i(glGetUniformLocation(shader->_handle, name), value);
+    glUniform1f(uniform, value);
 }
 
-void gpu_shader_set_vec2i(gpu_shader_t* shader, const char* name, int x, int y) {
+void gpu_shader_set_int(gpu_shader_t* shader, gpu_uniform_t uniform, int value) {
 	gpu_shader_use(shader);
-	glUniform2i(glGetUniformLocation(shader->_handle, name), x, y);
+    glUniform1i(uniform, value);
 }
 
-void gpu_shader_set_vec2f(gpu_shader_t* shader, const char* name, const vec2f_t* vec2) {
+void gpu_shader_set_vec2i(gpu_shader_t* shader, gpu_uniform_t uniform, int x, int y) {
 	gpu_shader_use(shader);
-	glUniform2fv(glGetUniformLocation(shader->_handle, name), 1, vec2->array);
+	glUniform2i(uniform, x, y);
 }
 
-void gpu_shader_set_vec3f(gpu_shader_t* shader, const char* name, const vec3f_t* vec3) {
+void gpu_shader_set_vec2f(gpu_shader_t* shader, gpu_uniform_t uniform, const vec2f_t* vec2) {
 	gpu_shader_use(shader);
-	glUniform3fv(glGetUniformLocation(shader->_handle, name), 1, vec3->array);
+	glUniform2fv(uniform, 1, vec2->array);
 }
 
-void gpu_shader_set_mat4x4(gpu_shader_t* shader, const char* name, const mat4x4_t* mat4x4) {
+void gpu_shader_set_vec3f(gpu_shader_t* shader, gpu_uniform_t uniform, const vec3f_t* vec3) {
 	gpu_shader_use(shader);
-	glUniformMatrix4fv(glGetUniformLocation(shader->_handle, name), 1, GL_FALSE, (float*)mat4x4);
+	glUniform3fv(uniform, 1, vec3->array);
+}
+
+void gpu_shader_set_mat4x4(gpu_shader_t* shader, gpu_uniform_t uniform, const mat4x4_t* mat4x4) {
+	gpu_shader_use(shader);
+	glUniformMatrix4fv(uniform, 1, GL_FALSE, (float*)mat4x4);
 }
 
 void gpu_shader_bind_uniform_buffer(gpu_shader_t* shader, const char* name, gpu_uniform_buffer_t* buffer) {

@@ -201,7 +201,7 @@ void sprite_batch_flush(sprite_batch_t* sprite_batch) {
 //	console_println("Flushing {} sprites in batch...", FORMAT(int, item_count));
 
 	gpu_shader_use(sprite_batch->_param_effect);
-	gpu_shader_set_int(sprite_batch->_param_effect, "u_texture", 0);
+	gpu_shader_set_int(sprite_batch->_param_effect, gpu_shader_get_uniform(sprite_batch->_param_effect, "u_texture"), 0);
 
 	gpu_uniform_buffer_upload_sub(
 		sprite_batch->_buffer,
@@ -213,9 +213,9 @@ void sprite_batch_flush(sprite_batch_t* sprite_batch) {
 	app_t* app = gpu_app(sprite_batch->_gpu);
 	app_window_size_t wind_size = app_window_size(app);
 	mat4x4_t proj = mat4x4_orthographic(0, wind_size.width, 0, wind_size.height, -1.f, 1.f); 
-	gpu_shader_set_mat4x4(sprite_batch->_param_effect, "u_proj", &proj);
+	gpu_shader_set_mat4x4(sprite_batch->_param_effect, gpu_shader_get_uniform(sprite_batch->_param_effect, "u_proj"), &proj);
 
-	gpu_shader_set_mat4x4(sprite_batch->_param_effect, "u_view", &sprite_batch->_param_view);
+	gpu_shader_set_mat4x4(sprite_batch->_param_effect, gpu_shader_get_uniform(sprite_batch->_param_effect, "u_view"), &sprite_batch->_param_view);
 	
 	gpu_texture_use(sprite_batch->_param_texture, 0);
 	gpu_verts_draw_instanced(sprite_batch->_verts, item_count);
