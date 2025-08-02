@@ -73,6 +73,9 @@ gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, bool has_indices, gpu_
 void gpu_verts_upload(gpu_verts_t* verts, const void* ptr, usize length);
 void gpu_verts_upload_indices(gpu_verts_t* verts, const gpu_index_t* ptr, usize length); 
 
+void gpu_verts_upload_sub(gpu_verts_t* verts, usize offset, usize length, const void* ptr);
+void gpu_verts_upload_indices_sub(gpu_verts_t* verts, usize offset, usize length, const gpu_index_t* ptr);
+
 void gpu_verts_draw(gpu_verts_t* verts);
 void gpu_verts_draw_instanced(gpu_verts_t* verts, usize count);
 void gpu_verts_destroy(gpu_verts_t* verts);

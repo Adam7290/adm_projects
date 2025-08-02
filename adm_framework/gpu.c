@@ -148,6 +148,22 @@ void gpu_verts_upload_indices(gpu_verts_t* verts, const gpu_index_t* ptr, usize 
 	verts->_index_buffer_length = length;
 }
 
+void gpu_verts_upload_sub(gpu_verts_t* verts, usize offset, usize length, const void* ptr) {
+	glBindVertexArray(verts->_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, verts->_vbo);
+	glBufferSubData(GL_ARRAY_BUFFER, offset, length, ptr);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
+void gpu_verts_upload_indices_sub(gpu_verts_t* verts, usize offset, usize length, const gpu_index_t* ptr) {
+	glBindVertexArray(verts->_vao);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, verts->_ebo);
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, length, ptr);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
 void gpu_verts_draw(gpu_verts_t* verts) {
 	glBindVertexArray(verts->_vao);
 	if (verts->_ebo == 0) {
