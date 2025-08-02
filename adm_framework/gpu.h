@@ -16,6 +16,7 @@ typedef struct mat4x4_t mat4x4_t;
 
 typedef enum gpu_attribute_type_t {
     GPU_ATTRIBUTE_TYPE_FLOAT,
+    GPU_ATTRIBUTE_TYPE_BYTE,
     _gpu_attribute_type_count,
 } gpu_attribute_type_t;
 

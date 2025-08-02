@@ -56,6 +56,32 @@ PRIVATE void _gpu_verts_destroy_internal(gpu_verts_t* verts) {
 	glDeleteBuffers(1, &verts->_ebo);
 }
 
+PRIVATE GLenum _gpu_attr_type_to_gl(const gpu_attribute_t* attr) {
+	switch (attr->type) {
+		case GPU_ATTRIBUTE_TYPE_FLOAT:
+			return GL_FLOAT;
+		case GPU_ATTRIBUTE_TYPE_BYTE:
+			return GL_BYTE;
+		default:
+			PANIC("Unknown gpu_attribute_type_t: {}", FORMAT(int, attr->type));
+	}
+
+	return 0; 
+}
+
+PRIVATE usize _gpu_attr_type_to_size(const gpu_attribute_t* attr) {
+	switch (attr->type) {
+		case GPU_ATTRIBUTE_TYPE_FLOAT:
+			return sizeof(float);
+		case GPU_ATTRIBUTE_TYPE_BYTE:
+			return sizeof(byte);
+		default:
+			PANIC("Unknown gpu_attribute_type_t: {}", FORMAT(int, attr->type));
+	}
+
+	return 0;
+}
+
 gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, bool has_indices, gpu_attribute_t attributes[]) {
     gpu_verts_t* verts = arena_defer(arena, _gpu_verts_destroy_internal, gpu_verts_t);
     verts->_arena = arena;
@@ -79,7 +105,7 @@ gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, bool has_indices, gpu_
 		gpu_attribute_t* attr = attributes;
 		while (attr->size != 0) {
 			total_attributes++;	
-			stride += attr->size * sizeof(float); // MAGIC TYPE SIZEOF
+			stride += attr->size * _gpu_attr_type_to_size(attr);
 			attr++;
 		}
 	}
@@ -89,9 +115,10 @@ gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, bool has_indices, gpu_
     usize offset = 0;
     for (int i = 0; i < total_attributes; i++) {
 		gpu_attribute_t attr = attributes[i];
+
         glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, attr.size, GL_FLOAT, GL_FALSE, stride, (void*)offset); // MAGIC GL_FLOAT
-        offset += attr.size * sizeof(float); // MAGIC TYPE SIZEOF
+        glVertexAttribPointer(i, attr.size, _gpu_attr_type_to_gl(&attr), GL_FALSE, stride, (void*)offset); // MAGIC GL_FLOAT
+        offset += attr.size * _gpu_attr_type_to_size(&attr); 
     }
 
     glBindVertexArray(0);
