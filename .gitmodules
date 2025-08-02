@@ -1,3 +1,6 @@
 [submodule "adm_framework/external/glfw"]
 	path = adm_framework/external/glfw
 	url = https://github.com/glfw/glfw
+[submodule "adm_framework/external/Nuklear"]
+	path = adm_framework/external/Nuklear
+	url = https://github.com/Immediate-Mode-UI/Nuklear.git

@@ -11,6 +11,7 @@ typedef enum image_format_t image_format_t;
 typedef struct color4b_t color4b_t;
 typedef struct vec2f_t vec2f_t;
 typedef struct vec3f_t vec3f_t;
+typedef struct vec4f_t vec4f_t;
 typedef struct mat4x4_t mat4x4_t;
 
 typedef enum gpu_attribute_type_t {
@@ -101,3 +102,6 @@ gpu_uniform_buffer_t* gpu_uniform_buffer_create(gpu_t* gpu, arena_t* arena);
 void gpu_uniform_buffer_upload(gpu_uniform_buffer_t* buffer, usize length, NULLABLE const void* data);
 void gpu_uniform_buffer_upload_sub(gpu_uniform_buffer_t* buffer, usize offset, usize length, const void* data); 
 void gpu_uniform_buffer_destroy(gpu_uniform_buffer_t* buffer);
+
+void gpu_scissor_begin(gpu_t* gpu, const vec4f_t* rect);
+void gpu_scissor_end(gpu_t* gpu);

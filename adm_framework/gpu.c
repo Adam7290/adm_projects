@@ -388,3 +388,12 @@ void gpu_uniform_buffer_upload_sub(gpu_uniform_buffer_t* buffer, usize offset, u
 void gpu_uniform_buffer_destroy(gpu_uniform_buffer_t* buffer) {
 	arena_free(buffer->_arena, buffer);
 }
+
+void gpu_scissor_begin(gpu_t* gpu, const vec4f_t* rect) {
+	glEnable(GL_SCISSOR_TEST);
+	glScissor(rect->x, rect->y, rect->z, rect->w);
+}
+
+void gpu_scissor_end(gpu_t* gpu) {
+	glDisable(GL_SCISSOR_TEST);
+}
