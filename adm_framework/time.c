@@ -42,6 +42,10 @@ time_stamp_t time_app_elapsed(app_t* app) {
     return app->_time->current;
 }
 
+time_stamp_t time_app_last(app_t* app) {
+	return app->_time->last;
+}
+
 time_stamp_t time_app_delta(app_t* app) {
     return app->_time->delta;
 }

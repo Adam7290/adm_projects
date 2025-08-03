@@ -16,4 +16,5 @@ time_stamp_t time_stamp_sub(time_stamp_t* time_stamp_1, time_stamp_t* time_stamp
 void _time_init(app_t* app);
 void _time_frame(_time_t* time);
 time_stamp_t time_app_elapsed(app_t* app);
+time_stamp_t time_app_last(app_t* app);
 time_stamp_t time_app_delta(app_t* app);
