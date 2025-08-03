@@ -544,19 +544,13 @@ PRIVATE void _input_glfw_mouse_button_callback(GLFWwindow* glfw_window, int glfw
 
 PRIVATE void _input_glfw_char_callback(GLFWwindow* glfw_window, uint codepoint) {
 	app_t* app = glfwGetWindowUserPointer(glfw_window);
-	_list_input_char_callback_t* callbacks = &app->_input->input_char_callbacks;	
-	for (iterc_t it = _list_input_char_callback_begin(callbacks); !iter_equals(it, _list_input_char_callback_end(callbacks)); it = iter_next(it)) {
-		const input_char_callback_t* callback = iterc_element(it);
-		callback->func(app, callback->user_data, codepoint);
-	}
+	app->_input->codepoint = codepoint;
 }
 
 void _input_init(app_t* app) {
     // adm_arena will guarentee allocated memory is zeroed out so our button buffers should all be INPUT_BUTTON_STATE_RELEASED aka 0
     app->_input = arena_alloc(app->_arena, input_t);
 	app->_input->app = app;
-
-	app->_input->input_char_callbacks = _list_input_char_callback_new(app->_arena);
 
     glfwSetKeyCallback(app->_window, _input_glfw_key_callback);
     glfwSetMouseButtonCallback(app->_window, _input_glfw_mouse_button_callback);
@@ -582,6 +576,9 @@ void _input_frame(input_t* input) {
             input->mouse_button_states[mouse_button] = INPUT_BUTTON_STATE_RELEASED;
         }
     }
+
+	// Update codepoint in case callback isn't called the frame after it was called to reset it
+	input->codepoint = 0;
 }
 
 input_button_state_t input_key_state(app_t* app, input_key_t key) {
@@ -628,6 +625,6 @@ bool input_mouse_button_released(app_t* app, input_mouse_button_t mouse_button) 
     return input_mouse_button_state(app, mouse_button) == INPUT_BUTTON_STATE_JUST_RELEASED;
 }
 
-void input_add_char_callback(app_t* app, const input_char_callback_t* callback) {
-	_list_input_char_callback_push_back(&app->_input->input_char_callbacks, *callback);
+uint input_codepoint(app_t* app) {
+	return app->_input->codepoint;
 }

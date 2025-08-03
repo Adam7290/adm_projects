@@ -144,20 +144,12 @@ typedef enum input_button_state_t {
 } input_button_state_t;
 
 typedef struct app_t app_t;
-typedef struct input_char_callback_t {
-	void* user_data;
-	void(*func)(app_t* app, void* user_data, uint codepoint);
-} input_char_callback_t;
-
-#define LIST_TEMPLATE input_char_callback_t
-#define LIST_TEMPLATE_PREFIX _list_input_char_callback_
-#include <adm_utils/list_impl.h>
 
 typedef struct input_t {
 	app_t* app;
     u8 key_states[_input_key_count];
     u8 mouse_button_states[_input_mouse_button_count];
-	_list_input_char_callback_t input_char_callbacks;
+	uint codepoint;
 } input_t;
 
 typedef struct app_t app_t;
@@ -174,7 +166,5 @@ bool input_mouse_button_down(app_t* app, input_mouse_button_t mouse_button);
 bool input_mouse_button_up(app_t* app, input_mouse_button_t mouse_button);
 bool input_mouse_button_pressed(app_t* app, input_mouse_button_t mouse_button);
 bool input_mouse_button_released(app_t* app, input_mouse_button_t mouse_button);
-// TODO: Returns iterator to callback for removing
-void input_add_char_callback(app_t* app, const input_char_callback_t* callback);
-// void input_remove_char_callback(app_t* app, iter_t callback);
-
+// If a char is typed *this frame* this function will return it
+uint input_codepoint(app_t* app);
