@@ -1,3 +1,4 @@
+#define LIST_IMPLEMENTATION
 #include "input.h"
 #include "app.h"
 
@@ -513,7 +514,7 @@ PRIVATE input_mouse_button_t _glfw_to_input_mouse_button(int button) {
     }
 }
 
-void _input_glfw_key_callback(GLFWwindow* glfw_window, int glfw_key, int glfw_scancode, int glfw_action, int glfw_mods) {
+PRIVATE void _input_glfw_key_callback(GLFWwindow* glfw_window, int glfw_key, int glfw_scancode, int glfw_action, int glfw_mods) {
     // We don't process repeat actions
     if (glfw_action == GLFW_REPEAT) {
         return;
@@ -527,7 +528,7 @@ void _input_glfw_key_callback(GLFWwindow* glfw_window, int glfw_key, int glfw_sc
     app->_input->key_states[key] = glfw_action == GLFW_PRESS ? INPUT_BUTTON_STATE_JUST_PRESSED : INPUT_BUTTON_STATE_JUST_RELEASED;
 }
 
-void _input_glfw_mouse_button_callback(GLFWwindow* glfw_window, int glfw_button, int glfw_action, int glfw_mods) {
+PRIVATE void _input_glfw_mouse_button_callback(GLFWwindow* glfw_window, int glfw_button, int glfw_action, int glfw_mods) {
     // We don't process repeat actions
     if (glfw_action == GLFW_REPEAT) {
         return;
@@ -535,10 +536,19 @@ void _input_glfw_mouse_button_callback(GLFWwindow* glfw_window, int glfw_button,
 
     app_t* app = glfwGetWindowUserPointer(glfw_window);
 
-    input_key_t mouse_button = _glfw_to_input_mouse_button(glfw_button);
+    input_mouse_button_t mouse_button = _glfw_to_input_mouse_button(glfw_button);
     PANIC_ASSERT(mouse_button >= 0 && mouse_button < _input_mouse_button_count, "Invalid input_mouse_button");
 
     app->_input->mouse_button_states[mouse_button] = glfw_action == GLFW_PRESS ? INPUT_BUTTON_STATE_JUST_PRESSED : INPUT_BUTTON_STATE_JUST_RELEASED;
+}
+
+PRIVATE void _input_glfw_char_callback(GLFWwindow* glfw_window, uint codepoint) {
+	app_t* app = glfwGetWindowUserPointer(glfw_window);
+	_list_input_char_callback_t* callbacks = &app->_input->input_char_callbacks;	
+	for (iterc_t it = _list_input_char_callback_begin(callbacks); !iter_equals(it, _list_input_char_callback_end(callbacks)); it = iter_next(it)) {
+		const input_char_callback_t* callback = iterc_element(it);
+		callback->func(app, callback->user_data, codepoint);
+	}
 }
 
 void _input_init(app_t* app) {
@@ -546,8 +556,11 @@ void _input_init(app_t* app) {
     app->_input = arena_alloc(app->_arena, input_t);
 	app->_input->app = app;
 
+	app->_input->input_char_callbacks = _list_input_char_callback_new(app->_arena);
+
     glfwSetKeyCallback(app->_window, _input_glfw_key_callback);
     glfwSetMouseButtonCallback(app->_window, _input_glfw_mouse_button_callback);
+	glfwSetCharCallback(app->_window, _input_glfw_char_callback);
 }
 
 // Expected to be called before glfwPollEvents
@@ -599,7 +612,7 @@ input_button_state_t input_mouse_button_state(app_t* app, input_mouse_button_t m
 }
 
 bool input_mouse_button_down(app_t* app, input_mouse_button_t mouse_button) {
-    input_button_state_t state = input_key_state(app, mouse_button);
+    input_button_state_t state = input_mouse_button_state(app, mouse_button);
     return state == INPUT_BUTTON_STATE_JUST_PRESSED || INPUT_BUTTON_STATE_PRESSED;
 }
 
@@ -608,9 +621,13 @@ bool input_mouse_button_up(app_t* app, input_mouse_button_t mouse_button) {
 }
 
 bool input_mouse_button_pressed(app_t* app, input_mouse_button_t mouse_button) {
-    return input_key_state(app, mouse_button) == INPUT_BUTTON_STATE_JUST_PRESSED;
+    return input_mouse_button_state(app, mouse_button) == INPUT_BUTTON_STATE_JUST_PRESSED;
 }
 
 bool input_mouse_button_released(app_t* app, input_mouse_button_t mouse_button) {
-    return input_key_state(app, mouse_button) == INPUT_BUTTON_STATE_JUST_RELEASED;
+    return input_mouse_button_state(app, mouse_button) == INPUT_BUTTON_STATE_JUST_RELEASED;
+}
+
+void input_add_char_callback(app_t* app, const input_char_callback_t* callback) {
+	_list_input_char_callback_push_back(&app->_input->input_char_callbacks, *callback);
 }
