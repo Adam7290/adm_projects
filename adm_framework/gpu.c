@@ -82,7 +82,7 @@ PRIVATE usize _gpu_attr_type_to_size(const gpu_attribute_t* attr) {
 	return 0;
 }
 
-gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, bool has_indices, gpu_attribute_t attributes[]) {
+gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, gpu_attribute_t attributes[]) {
     gpu_verts_t* verts = arena_defer(arena, _gpu_verts_destroy_internal, gpu_verts_t);
     verts->_arena = arena;
 	verts->_gpu = gpu;
@@ -90,10 +90,8 @@ gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, bool has_indices, gpu_
 
     glGenVertexArrays(1, &verts->_vao);
     glGenBuffers(1, &verts->_vbo);
-
-	if (has_indices == true) {
-		glGenBuffers(1, &verts->_ebo);
-	}
+	glGenBuffers(1, &verts->_ebo);
+	
 
     glBindVertexArray(verts->_vao);
     glBindBuffer(GL_ARRAY_BUFFER, verts->_vbo);
@@ -117,7 +115,7 @@ gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, bool has_indices, gpu_
 		gpu_attribute_t attr = attributes[i];
 
         glEnableVertexAttribArray(i);
-        glVertexAttribPointer(i, attr.size, _gpu_attr_type_to_gl(&attr), GL_FALSE, stride, (void*)offset); // MAGIC GL_FLOAT
+        glVertexAttribPointer(i, attr.size, _gpu_attr_type_to_gl(&attr), GL_FALSE, stride, (void*)offset); 
         offset += attr.size * _gpu_attr_type_to_size(&attr); 
     }
 
@@ -128,63 +126,101 @@ gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, bool has_indices, gpu_
     return verts;
 }
 
-void gpu_verts_upload(gpu_verts_t* verts, const void* ptr, usize length) {
-	glBindVertexArray(verts->_vao);
-    glBindBuffer(GL_ARRAY_BUFFER, verts->_vbo);
-    glBufferData(GL_ARRAY_BUFFER, length, ptr, GL_STATIC_DRAW);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindVertexArray(0);
+PRIVATE GLenum _gpu_buffer_access_to_gl(gpu_buffer_access_t access) {
+	switch (access) {
+	case GPU_BUFFER_ACCESS_READ:
+		return GL_READ_ONLY;
+	case GPU_BUFFER_ACCESS_WRITE:
+		return GL_WRITE_ONLY;
+	case GPU_BUFFER_ACCESS_READ_WRITE:
+		return GL_READ_WRITE;
+	}
 
-    verts->_buffer_length = length;
+	PANIC("Unknown gpu_buffer_access_t: {}", FORMAT(int, access));
+	return 0;
 }
 
-void gpu_verts_upload_indices(gpu_verts_t* verts, const gpu_index_t* ptr, usize length) {
+PRIVATE GLenum _gpu_buffer_usage_to_gl(gpu_buffer_usage_t usage) {
+	switch (usage) {
+	case GPU_BUFFER_USAGE_STATIC:
+		return GL_STATIC_DRAW;
+	case GPU_BUFFER_USAGE_DYNAMIC:
+		return GL_DYNAMIC_DRAW;
+	case GPU_BUFFER_USAGE_STREAM:
+		return GL_STREAM_DRAW;
+	}
+
+	PANIC("Unknown gpu_buffer_usage_t: {}", FORMAT(int, usage));
+	return 0;
+}
+
+void gpu_verts_alloc_vertices(gpu_verts_t* verts, gpu_buffer_usage_t usage, usize length, NULLABLE const void* data) {
+	glBindVertexArray(verts->_vao);
+	glBindBuffer(GL_ARRAY_BUFFER, verts->_vbo);
+	glBufferData(GL_ARRAY_BUFFER, length, data, _gpu_buffer_usage_to_gl(usage));
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+
+	verts->_buffer_length = length;
+}
+
+void gpu_verts_alloc_indices(gpu_verts_t* verts, gpu_buffer_usage_t usage, usize length, NULLABLE const gpu_index_t* data) {
 	glBindVertexArray(verts->_vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, verts->_ebo);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, length, ptr, GL_STATIC_DRAW);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, length, data, _gpu_buffer_usage_to_gl(usage));
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 
 	verts->_index_buffer_length = length;
 }
 
-void gpu_verts_upload_sub(gpu_verts_t* verts, usize offset, usize length, const void* ptr) {
+void gpu_verts_memcpy_vertices(gpu_verts_t* verts, usize offset, usize length, const void* data) {
 	glBindVertexArray(verts->_vao);
 	glBindBuffer(GL_ARRAY_BUFFER, verts->_vbo);
-	glBufferSubData(GL_ARRAY_BUFFER, offset, length, ptr);
+	glBufferSubData(GL_ARRAY_BUFFER, offset, length, data);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 
-void gpu_verts_upload_indices_sub(gpu_verts_t* verts, usize offset, usize length, const gpu_index_t* ptr) {
+void gpu_verts_memcpy_indices(gpu_verts_t* verts, usize offset, usize length, const gpu_index_t* data) {
 	glBindVertexArray(verts->_vao);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, verts->_ebo);
-	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, length, ptr);
+	glBufferSubData(GL_ELEMENT_ARRAY_BUFFER, offset, length, data);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 
+void* gpu_verts_map_vertices(gpu_verts_t* verts, gpu_buffer_access_t access) {
+	glBindBuffer(GL_ARRAY_BUFFER, verts->_vbo);
+	return glMapBuffer(GL_ARRAY_BUFFER, _gpu_buffer_access_to_gl(access));
+}
+
+gpu_index_t* gpu_verts_map_indices(gpu_verts_t* verts, gpu_buffer_access_t access) {
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, verts->_ebo);
+	return glMapBuffer(GL_ELEMENT_ARRAY_BUFFER, _gpu_buffer_access_to_gl(access));
+}
+
+void gpu_verts_unmap_vertices() {
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+}
+
+void gpu_verts_unmap_indices() {
+	glUnmapBuffer(GL_ELEMENT_ARRAY_BUFFER);
+}
+
 void gpu_verts_draw(gpu_verts_t* verts) {
 	glBindVertexArray(verts->_vao);
-	if (verts->_ebo == 0) {
-		glDrawArrays(GL_TRIANGLES, 0, verts->_buffer_length / verts->_vertex_size);
-	} else {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, verts->_ebo);
-		glDrawElements(GL_TRIANGLES, verts->_index_buffer_length / sizeof(gpu_index_t), GL_UNSIGNED_SHORT, NULL);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, verts->_ebo);
+	glDrawElements(GL_TRIANGLES, verts->_index_buffer_length / sizeof(gpu_index_t), GL_UNSIGNED_SHORT, NULL);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 
 void gpu_verts_draw_instanced(gpu_verts_t* verts, usize count) {
 	glBindVertexArray(verts->_vao);
-	if (verts->_ebo == 0) {
-		glDrawArraysInstanced(GL_TRIANGLES, 0, verts->_buffer_length / verts->_vertex_size, count);
-	} else {
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, verts->_ebo);
-		glDrawElementsInstanced(GL_TRIANGLES, verts->_index_buffer_length / sizeof(gpu_index_t), GL_UNSIGNED_SHORT, NULL, count);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, verts->_ebo);
+	glDrawElementsInstanced(GL_TRIANGLES, verts->_index_buffer_length / sizeof(gpu_index_t), GL_UNSIGNED_SHORT, NULL, count);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 

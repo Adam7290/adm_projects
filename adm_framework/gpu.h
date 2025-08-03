@@ -54,6 +54,18 @@ typedef enum gpu_texture_filter_t {
 	GPU_TEXTURE_FILTER_LINEAR,
 } gpu_texture_filter_t;
 
+typedef enum gpu_buffer_access_t {
+	GPU_BUFFER_ACCESS_READ,
+	GPU_BUFFER_ACCESS_WRITE,
+	GPU_BUFFER_ACCESS_READ_WRITE,
+} gpu_buffer_access_t;
+
+typedef enum gpu_buffer_usage_t {
+	GPU_BUFFER_USAGE_STATIC,
+	GPU_BUFFER_USAGE_DYNAMIC,
+	GPU_BUFFER_USAGE_STREAM,
+} gpu_buffer_usage_t;
+
 // TODO: Make into generic buffer api
 typedef struct gpu_uniform_buffer_t {
 	uint _handle;
@@ -69,12 +81,18 @@ app_t* gpu_app(gpu_t* gpu);
 void gpu_clear(gpu_t* gpu, const color4b_t* color);
 void gpu_wireframe(gpu_t* gpu, bool wireframe);
 
-gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, bool has_indices, gpu_attribute_t attributes[]);
-void gpu_verts_upload(gpu_verts_t* verts, const void* ptr, usize length);
-void gpu_verts_upload_indices(gpu_verts_t* verts, const gpu_index_t* ptr, usize length); 
+gpu_verts_t* gpu_verts_create(gpu_t* gpu, arena_t* arena, gpu_attribute_t attributes[]);
 
-void gpu_verts_upload_sub(gpu_verts_t* verts, usize offset, usize length, const void* ptr);
-void gpu_verts_upload_indices_sub(gpu_verts_t* verts, usize offset, usize length, const gpu_index_t* ptr);
+void gpu_verts_alloc_vertices(gpu_verts_t* verts, gpu_buffer_usage_t usage, usize length, NULLABLE const void* data);
+void gpu_verts_alloc_indices(gpu_verts_t* verts, gpu_buffer_usage_t usage, usize length, NULLABLE const gpu_index_t* data);
+void gpu_verts_memcpy_vertices(gpu_verts_t* verts, usize offset, usize length, const void* data);
+void gpu_verts_memcpy_indices(gpu_verts_t* verts, usize offset, usize length, const gpu_index_t* data);
+
+void* gpu_verts_map_vertices(gpu_verts_t* verts, gpu_buffer_access_t access);
+gpu_index_t* gpu_verts_map_indices(gpu_verts_t* verts, gpu_buffer_access_t access);
+
+void gpu_verts_unmap_vertices();
+void gpu_verts_unmap_indices();
 
 void gpu_verts_draw(gpu_verts_t* verts);
 void gpu_verts_draw_instanced(gpu_verts_t* verts, usize count);

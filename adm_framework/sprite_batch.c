@@ -137,25 +137,26 @@ sprite_batch_t* sprite_batch_new(gpu_t* gpu, arena_t* arena) {
 		float u, v;
 	} vertex_t;
 	
-	const vertex_t verts[] = {
+	static const vertex_t verts[] = {
 		(vertex_t){  0.0f,  0.0f,  0.0f, 0.0f, }, // Bottom-left
 		(vertex_t){  1.0f,  0.0f,  1.0f, 0.0f, }, // Bottom-right
 		(vertex_t){  1.0f,	1.0f,  1.0f, 1.0f, }, // Top-right
 	    (vertex_t){  0.0f,  1.0f,  0.0f, 1.0f, }, // Top-left
 	};
 
-	const gpu_index_t indices[] = {
+	static const gpu_index_t indices[] = {
 		0, 1, 2,
 		2, 3, 0,
 	};
 
-	sprite_batch->_verts = gpu_verts_create(gpu, arena, true, (gpu_attribute_t[]){
+	sprite_batch->_verts = gpu_verts_create(gpu, arena, (gpu_attribute_t[]){
 		{ 2, GPU_ATTRIBUTE_TYPE_FLOAT, },
 		{ 2, GPU_ATTRIBUTE_TYPE_FLOAT, },
 		{ 0 },
 	}); 
-	gpu_verts_upload(sprite_batch->_verts, verts, sizeof(verts));
-	gpu_verts_upload_indices(sprite_batch->_verts, indices, sizeof(indices));
+
+	gpu_verts_alloc_vertices(sprite_batch->_verts, GPU_BUFFER_USAGE_STATIC, sizeof(verts), verts);
+	gpu_verts_alloc_indices(sprite_batch->_verts, GPU_BUFFER_USAGE_STATIC, sizeof(indices), indices);
 
 	// Blank texture
 	sprite_batch->_texture_blank = gpu_texture_create(gpu, arena);
