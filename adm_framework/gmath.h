@@ -3,81 +3,81 @@
 #pragma once
 
 #include <adm_utils/util.h>
+#include <adm_utils/format.h>
+#include <adm_utils/stream.h>
 #include <math.h>
 
 #define deg_to_rad(x) (x * 0.017453292519943295)
 #define rad_to_deg(x) (x * 57.29577951308232)
 
 #define _GTYPES_DEFINE_VEC(dims, type, prefix, ...) \
-typedef struct type { \
+typedef struct prefix##_t { \
 	union { \
-		float array[dims]; \
+		type array[dims]; \
 		struct { \
 			__VA_ARGS__ \
 		}; \
 	}; \
-} type; \
+} prefix##_t; \
  \
-static inline type prefix##_add(const type* v0, const type* v1) { \
-	type ret; \
+static inline prefix##_t prefix##_add(const prefix##_t* v0, const prefix##_t* v1) { \
+	prefix##_t ret; \
 	for (int i = 0; i < dims; i++) { \
 		ret.array[i] = v0->array[i] + v1->array[i]; \
 	} \
 	return ret; \
 } \
  \
-static inline type prefix##_sub(const type* v0, const type* v1) { \
-	type ret; \
+static inline prefix##_t prefix##_sub(const prefix##_t* v0, const prefix##_t* v1) { \
+	prefix##_t ret; \
 	for (int i = 0; i < dims; i++) { \
 		ret.array[i] = v0->array[i] - v1->array[i]; \
 	} \
 	return ret; \
 } \
  \
-static inline type prefix##_mul(const type* v0, const type* v1) { \
-	type ret; \
+static inline prefix##_t prefix##_mul(const prefix##_t* v0, const prefix##_t* v1) { \
+	prefix##_t ret; \
 	for (int i = 0; i < dims; i++) { \
 		ret.array[i] = v0->array[i] * v1->array[i]; \
 	} \
 	return ret; \
 } \
  \
-static inline type prefix##_div(const type* v0, const type* v1) { \
-	type ret; \
+static inline prefix##_t prefix##_div(const prefix##_t* v0, const prefix##_t* v1) { \
+	prefix##_t ret; \
 	for (int i = 0; i < dims; i++) { \
 		ret.array[i] = v0->array[i] / v1->array[i]; \
 	} \
 	return ret; \
 } \
  \
-static inline type prefix##_div_scalar(const type* v0, float scalar) { \
-	type ret; \
+static inline prefix##_t prefix##_div_scalar(const prefix##_t* v0, type scalar) { \
+	prefix##_t ret; \
 	for (int i = 0; i < dims; i++) { \
 		ret.array[i] = v0->array[i] / scalar; \
 	} \
 	return ret; \
 } \
  \
-static inline type prefix##_mul_scalar(const type* v0, float scalar) { \
-	type ret; \
+static inline prefix##_t prefix##_mul_scalar(const prefix##_t* v0, type scalar) { \
+	prefix##_t ret; \
 	for (int i = 0; i < dims; i++) { \
 		ret.array[i] = v0->array[i] * scalar; \
 	} \
 	return ret; \
 }
 
-_GTYPES_DEFINE_VEC(2, vec2f_t, vec2, float x, y;);
-_GTYPES_DEFINE_VEC(3, vec3f_t, vec3, float x, y, z;);
-_GTYPES_DEFINE_VEC(4, vec4f_t, vec4, float x, y, z, w;);
-_GTYPES_DEFINE_VEC(4, color4f_t, color4f, float r, g, b, a;);
+_GTYPES_DEFINE_VEC(2, float, vec2f, float x, y;);
+_GTYPES_DEFINE_VEC(3, float, vec3f, float x, y, z;);
+_GTYPES_DEFINE_VEC(4, float, vec4f, float x, y, z, w;);
+_GTYPES_DEFINE_VEC(4, float, color4f, float r, g, b, a;);
 
-typedef struct color4b_t {
-	union {
-		u8 array[4];
-		u64 hex;
-		struct { u8 r, g, b, a; };
-	};
-} color4b_t;
+_GTYPES_DEFINE_VEC(2, int, vec2i, int x, y;);
+_GTYPES_DEFINE_VEC(3, int, vec3i, int x, y, z;);
+_GTYPES_DEFINE_VEC(4, int, vec4i, int x, y, z, w;);
+
+_GTYPES_DEFINE_VEC(4, u8, color4b, union { u64 hex; struct { u8 r,g,b,a; }; };);
 
 static inline color4f_t color4b_to_color4f(const color4b_t* b) {
 	return (color4f_t){ b->r / 255.f, b->g / 255.f, b->b / 255.f, b->a / 255.f };
