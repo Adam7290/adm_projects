@@ -547,6 +547,11 @@ PRIVATE void _input_glfw_char_callback(GLFWwindow* glfw_window, uint codepoint) 
 	app->_input->codepoint = codepoint;
 }
 
+PRIVATE void _input_glfw_scroll_callback(GLFWwindow* glfw_window, double xd, double yd) {
+	app_t* app = glfwGetWindowUserPointer(glfw_window);
+	app->_input->scroll = vec2f_add(&app->_input->scroll, &(vec2f_t){ xd, yd });
+}
+
 void _input_init(app_t* app) {
     // adm_arena will guarentee allocated memory is zeroed out so our button buffers should all be INPUT_BUTTON_STATE_RELEASED aka 0
     app->_input = arena_alloc(app->_arena, input_t);
@@ -555,6 +560,7 @@ void _input_init(app_t* app) {
     glfwSetKeyCallback(app->_window, _input_glfw_key_callback);
     glfwSetMouseButtonCallback(app->_window, _input_glfw_mouse_button_callback);
 	glfwSetCharCallback(app->_window, _input_glfw_char_callback);
+	glfwSetScrollCallback(app->_window, _input_glfw_scroll_callback);
 }
 
 // Expected to be called before glfwPollEvents
@@ -582,6 +588,9 @@ void _input_frame(input_t* input) {
 
 	// Update codepoint in case callback isn't called the frame after it was called to reset it
 	input->codepoint = 0;
+
+	// Update mouse scroll
+	input->scroll = (vec2f_t){ 0, 0 };
 }
 
 input_button_state_t input_key_state(app_t* app, input_key_t key) {
@@ -636,6 +645,18 @@ vec2i_t input_mouse_pos(app_t* app) {
 
 void input_set_mouse_pos(app_t* app, const vec2i_t* pos) {
 	glfwSetCursorPos(app->_window, (int)pos->x, (int)pos->y);
+}
+
+vec2f_t input_mouse_scroll(app_t* app) {
+	return app->_input->scroll;	
+}
+
+NULLABLE const char* input_clipboard_string(app_t* app) {
+	return glfwGetClipboardString(app->_window);
+}
+
+void input_set_clipboard_string(app_t* app, const char* str) {
+	glfwSetClipboardString(app->_window, str);
 }
 
 uint input_codepoint(app_t* app) {

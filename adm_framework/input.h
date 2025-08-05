@@ -151,6 +151,7 @@ typedef struct input_t {
     u8 key_states[_input_key_count];
     u8 mouse_button_states[_input_mouse_button_count];
 	uint codepoint;
+	vec2f_t scroll;
 } input_t;
 
 typedef struct app_t app_t;
@@ -169,5 +170,8 @@ bool input_mouse_button_pressed(app_t* app, input_mouse_button_t mouse_button);
 bool input_mouse_button_released(app_t* app, input_mouse_button_t mouse_button);
 vec2i_t input_mouse_pos(app_t* app);
 void input_set_mouse_pos(app_t* app, const vec2i_t* pos);
+vec2f_t input_mouse_scroll(app_t* app);
+NULLABLE const char* input_clipboard_string(app_t* app);
+void input_set_clipboard_string(app_t* app, const char* str);
 // If a char is typed *this frame* this function will return it
 uint input_codepoint(app_t* app);
