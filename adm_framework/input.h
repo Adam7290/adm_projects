@@ -1,7 +1,7 @@
 #pragma once
 #include <stdbool.h>
 #include <adm_utils/util.h>
-
+#include "gmath.h"
 
 typedef enum input_key_t {
     INPUT_KEY_UNKNOWN = -1,
@@ -138,9 +138,10 @@ typedef enum input_mouse_button_t {
 
 typedef enum input_button_state_t {
     INPUT_BUTTON_STATE_RELEASED,
+    INPUT_BUTTON_STATE_JUST_RELEASED,
     INPUT_BUTTON_STATE_JUST_PRESSED,
     INPUT_BUTTON_STATE_PRESSED,
-    INPUT_BUTTON_STATE_JUST_RELEASED,
+	INPUT_BUTTON_STATE_REPEAT,
 } input_button_state_t;
 
 typedef struct app_t app_t;
@@ -166,5 +167,7 @@ bool input_mouse_button_down(app_t* app, input_mouse_button_t mouse_button);
 bool input_mouse_button_up(app_t* app, input_mouse_button_t mouse_button);
 bool input_mouse_button_pressed(app_t* app, input_mouse_button_t mouse_button);
 bool input_mouse_button_released(app_t* app, input_mouse_button_t mouse_button);
+vec2i_t input_mouse_pos(app_t* app);
+void input_set_mouse_pos(app_t* app, const vec2i_t* pos);
 // If a char is typed *this frame* this function will return it
 uint input_codepoint(app_t* app);

@@ -515,15 +515,15 @@ PRIVATE input_mouse_button_t _glfw_to_input_mouse_button(int button) {
 }
 
 PRIVATE void _input_glfw_key_callback(GLFWwindow* glfw_window, int glfw_key, int glfw_scancode, int glfw_action, int glfw_mods) {
-    // We don't process repeat actions
-    if (glfw_action == GLFW_REPEAT) {
-        return;
-    }
-
     app_t* app = glfwGetWindowUserPointer(glfw_window);
 
     input_key_t key = _glfw_to_input_key(glfw_key);
     PANIC_ASSERT(key >= 0 && key < _input_key_count, "Invalid input_key");
+
+	if (glfw_action == GLFW_REPEAT) {
+		app->_input->key_states[key] = INPUT_BUTTON_STATE_REPEAT;
+		return;
+	}
 
     app->_input->key_states[key] = glfw_action == GLFW_PRESS ? INPUT_BUTTON_STATE_JUST_PRESSED : INPUT_BUTTON_STATE_JUST_RELEASED;
 }
@@ -561,11 +561,14 @@ void _input_init(app_t* app) {
 void _input_frame(input_t* input) {
     // Update key_states
     for (input_button_state_t key = 0; key < _input_key_count; key++) {
-        if (input->key_states[key] == INPUT_BUTTON_STATE_JUST_PRESSED) {
-            input->key_states[key] = INPUT_BUTTON_STATE_PRESSED;
-        } else if (input->key_states[key] == INPUT_BUTTON_STATE_JUST_RELEASED) {
-            input->key_states[key] = INPUT_BUTTON_STATE_RELEASED;
-        }
+		u8* state = &input->key_states[key];
+        if (*state == INPUT_BUTTON_STATE_JUST_PRESSED) {
+            *state = INPUT_BUTTON_STATE_PRESSED;
+        } else if (*state == INPUT_BUTTON_STATE_JUST_RELEASED) {
+            *state = INPUT_BUTTON_STATE_RELEASED;
+        } else if (*state == INPUT_BUTTON_STATE_REPEAT) {
+			*state = INPUT_BUTTON_STATE_PRESSED;
+		}
     }
 
     // Update mouse_button_states
@@ -588,7 +591,7 @@ input_button_state_t input_key_state(app_t* app, input_key_t key) {
 
 bool input_key_down(app_t* app, input_key_t key) {
     input_button_state_t state = input_key_state(app, key);
-    return state == INPUT_BUTTON_STATE_JUST_PRESSED || state == INPUT_BUTTON_STATE_PRESSED;
+    return state == INPUT_BUTTON_STATE_JUST_PRESSED || state == INPUT_BUTTON_STATE_PRESSED || state == INPUT_BUTTON_STATE_REPEAT;
 }
 
 bool input_key_up(app_t* app, input_key_t key) {
@@ -610,7 +613,7 @@ input_button_state_t input_mouse_button_state(app_t* app, input_mouse_button_t m
 
 bool input_mouse_button_down(app_t* app, input_mouse_button_t mouse_button) {
     input_button_state_t state = input_mouse_button_state(app, mouse_button);
-    return state == INPUT_BUTTON_STATE_JUST_PRESSED || INPUT_BUTTON_STATE_PRESSED;
+    return state == INPUT_BUTTON_STATE_JUST_PRESSED || state == INPUT_BUTTON_STATE_PRESSED;
 }
 
 bool input_mouse_button_up(app_t* app, input_mouse_button_t mouse_button) {
@@ -623,6 +626,16 @@ bool input_mouse_button_pressed(app_t* app, input_mouse_button_t mouse_button) {
 
 bool input_mouse_button_released(app_t* app, input_mouse_button_t mouse_button) {
     return input_mouse_button_state(app, mouse_button) == INPUT_BUTTON_STATE_JUST_RELEASED;
+}
+
+vec2i_t input_mouse_pos(app_t* app) {
+	double x, y;
+	glfwGetCursorPos(app->_window, &x, &y);
+	return (vec2i_t){ (int)x, (int)y };
+}
+
+void input_set_mouse_pos(app_t* app, const vec2i_t* pos) {
+	glfwSetCursorPos(app->_window, (int)pos->x, (int)pos->y);
 }
 
 uint input_codepoint(app_t* app) {
